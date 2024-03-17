@@ -31,18 +31,18 @@ use libc::{
     SOL_SOCKET, SO_REUSEADDR,
 };
 
-pub(crate) const STATIC_FOLDER: &str = "./static/";
-pub(crate) const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
-pub(crate) const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n";
-pub(crate) struct Request {
-    pub(crate) path: &'static str,
-    pub(crate) method: &'static str,
-    pub(crate) get_request: &'static str,
-    pub(crate) protocol: &'static str,
-    pub(crate) post_request: &'static str,
+pub const STATIC_FOLDER: &str = "./static/";
+pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n";
+pub struct Request {
+    pub path: &'static str,
+    pub method: &'static str,
+    pub get_request: &'static str,
+    pub protocol: &'static str,
+    pub post_request: &'static str,
 }
 
-pub(crate) fn init(port: u16) -> (i32, sockaddr_in, usize) {
+pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     let opt: i32 = 1;
 
     let server_fd: i32 = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
@@ -72,7 +72,7 @@ pub(crate) fn init(port: u16) -> (i32, sockaddr_in, usize) {
     (server_fd, address, addrlen)
 }
 
-pub(crate) fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
+pub fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
 where
     F: Fn(Request) -> &'static str,
 {
@@ -155,7 +155,7 @@ where
     }
 }
 
-pub(crate) const BUFFER_SIZE: usize = 1024;
+pub const BUFFER_SIZE: usize = 1024;
 
 // Function to serve static files
 
@@ -163,18 +163,18 @@ extern "C" {
     fn htons(p0: u16) -> u16;
 }
 
-pub(crate) fn send_file(header: &str, file_path: &str) -> &'static str {
+pub fn send_file(header: &str, file_path: &str) -> &'static str {
     let mut file = File::open(file_path).expect("Server error");
     let mut contents = String::new();
     file.read_to_string(&mut contents).expect("Server error");
     send_http_response(header, &*contents)
 }
 
-pub(crate) fn send_http_response(header: &str, body: &str) -> &'static str {
+pub fn send_http_response(header: &str, body: &str) -> &'static str {
     let thing: String = header.to_string().clone() + body;
     thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
 }
-pub(crate) fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
+pub fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
     unsafe {
         let file_path_str = CStr::from_ptr(file_path).to_string_lossy();
         let file_path = file_path_str.trim();
