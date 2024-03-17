@@ -18,7 +18,7 @@ cargo add rohanasan
 - For a start you can add this to main.rs:
 
 ```rust
-use rohanasan_rs::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER};
+use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER};
 
 fn handle(request:Request) -> &'static str{
     if request.path == "/"{
