@@ -5,11 +5,12 @@
 > Currently available in C/C++/Rust programming languages only.
 > 
 > Please use a linux/unix/mac kind of os.
-
+>
+> This library has been built from scratch.
 # How to use in your project?
 - Open terminal inside the parent folder where you would like to create the folder of your project
 - Run:
-```sh
+```shell
 cargo new myproj
 cd myproj
 cargo add rohanasan
@@ -36,6 +37,14 @@ fn main() {
 - Go to: `localhost:8080`.
 - Enjoy using Rohanasan!
 
+# How to run the example?
+```shell
+git clone https://github.com/rohanasan/rohanasan-rs.git
+cd rohanasan-rs
+cd examples
+cargo run --example example
+```
+
 ## Discord server link:
 https://discord.gg/Yg2A3mEret
 
@@ -46,9 +55,9 @@ https://discord.gg/Yg2A3mEret
 - Can give you the path, method and protocol
 ### TODO:
 - Add feature to change the directory path of the public folder ☑️ Done!!!!
-- Asyncronous file request handeling
+- Asynchronous file request handling
 - Add feature to give the user an option to add index.html to static folder
-- Add feature to... currectly its just a pre alpha release I have to add alot of features right now!
+- Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
 
 ### Contribute:
 https://www.buymeacoffee.com/rohanvashisht

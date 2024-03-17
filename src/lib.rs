@@ -22,7 +22,7 @@
 
 use std::ffi::{CStr, CString};
 use std::fs::File;
-use std::io::{Read};
+use std::io::Read;
 use std::mem::size_of;
 
 use libc::{
@@ -30,18 +30,51 @@ use libc::{
     setsockopt, sockaddr, sockaddr_in, socket, socklen_t, write, AF_INET, INADDR_ANY, SOCK_STREAM,
     SOL_SOCKET, SO_REUSEADDR,
 };
-
-pub const STATIC_FOLDER: &str = "./static/";
+const STATIC_FOLDER: &str = "./static/";
+/// This is the Default Html Header.
 pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+
+/// This is the Default Json Header.
+pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+
+/// This is the Default 404 errors' Header.
 pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n";
+
+/// Take this as a parameter in your handle function
+/// This contains 5 things:
+/// 1) path: This contains the path that the person requested like /hello or /something.
+/// 2) method: This contains the method used to send the request like: GET or POST.
+/// 3) get_request: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
+/// 4) protocol: This contains the protocol used to make the HTTP request like:
+/// 5) post_request: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
 pub struct Request {
+    /// path: This contains the path that the person requested like /hello or /something.
     pub path: &'static str,
+    /// method: This contains the method used to send the request like: GET or POST.
     pub method: &'static str,
+    /// get_request: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
     pub get_request: &'static str,
+    /// protocol: This contains the protocol used to make the HTTP request like:
     pub protocol: &'static str,
+    /// post_request: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
     pub post_request: &'static str,
 }
 
+/// Use this function to initialize rohanasan backend framework.
+/// Provide this a port datatype: `u16`,
+/// use this like this:
+/// ```rust
+/// use rohanasan::{init, Request, serve};
+///
+/// fn handle(request: Request) -> &'static str{
+///     "Hello!"
+/// }
+///
+/// fn main(){
+///     // pass init a u16 type port
+///     serve(init(8080), handle);
+/// }
+/// ```
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     let opt: i32 = 1;
 
@@ -72,6 +105,21 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     (server_fd, address, addrlen)
 }
 
+/// Use this function to serve the initialized port according to handle.
+/// Provide this the value returned by serve function and a handle function as well,
+/// use it like this:
+/// ```rust
+/// use rohanasan::{init, Request, serve};
+///
+/// fn handle(request: Request) -> &'static str{
+///     "Hello!"
+/// }
+///
+/// fn main(){
+///     // use serve to serve the port.
+///     serve(init(8080), handle);
+/// }
+/// ```
 pub fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
 where
     F: Fn(Request) -> &'static str,
@@ -163,6 +211,25 @@ extern "C" {
     fn htons(p0: u16) -> u16;
 }
 
+/// Use this function to send a file.
+/// Provide this a header and a file path.
+/// use it like this:
+/// ```rust
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER};
+///
+/// fn handle(request: Request) -> &'static str{
+///     if request.path == "/"{
+///         send_file(DEFAULT_HTML_HEADER,"./html/index.html")
+///     }
+///     else {
+///         send_file(ERROR_404_HEADER ,"./html/404.html")
+///     }
+/// }
+///
+/// fn main() {
+///     serve(init(8080), handle);
+/// }
+/// ```
 pub fn send_file(header: &str, file_path: &str) -> &'static str {
     let mut file = File::open(file_path).expect("Server error");
     let mut contents = String::new();
@@ -170,6 +237,25 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
     send_http_response(header, &*contents)
 }
 
+/// Use this function to send an HTTP response.
+/// Provide this a header and a body.
+/// use it like this:
+/// ```rust
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER};
+///
+/// fn handle(request: Request) -> &'static str{
+///     if request.path == "/"{
+///         send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>")
+///     }
+///     else {
+///         send_http_response(ERROR_404_HEADER ,"<h1>404</h1>")
+///     }
+/// }
+///
+/// fn main() {
+///     serve(init(8080), handle);
+/// }
+/// ```
 pub fn send_http_response(header: &str, body: &str) -> &'static str {
     let thing: String = header.to_string().clone() + body;
     thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
@@ -213,11 +299,7 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
             match file.read(&mut buffer) {
                 Ok(0) => break,
                 Ok(bytes_read) => {
-                    write(
-                        client_socket,
-                        buffer.as_ptr() as *const c_void,
-                        bytes_read,
-                    );
+                    write(client_socket, buffer.as_ptr() as *const c_void, bytes_read);
                 }
                 Err(_) => {
                     eprintln!("Error reading file");
