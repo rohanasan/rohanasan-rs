@@ -1,10 +1,13 @@
 [package]
-name = "rohanasan-rs"
+name = "rohanasan"
 version = "0.1.2"
 edition = "2021"
-description="Rohanasan-rs: an extremely fast backend framework for rust!"
+description="Rohanasan: An extremely fast backend framework for rust!"
 license="MIT"
 repository="https://github.com/rohanasan/rohanasan-rs"
+categories = ["web-programming::http-server"]
+authors = ["Rohan Vashisht"]
+readme = "README.md"
 
 [dependencies]
 libc = "0.2.153"

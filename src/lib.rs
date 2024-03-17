@@ -174,7 +174,7 @@ pub fn send_http_response(header: &str, body: &str) -> &'static str {
     let thing: String = header.to_string().clone() + body;
     thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
 }
-pub fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
+fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
     unsafe {
         let file_path_str = CStr::from_ptr(file_path).to_string_lossy();
         let file_path = file_path_str.trim();
