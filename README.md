@@ -1,8 +1,10 @@
-# Rohanasan-rs: An extremely fast backend framework built for rust
+# Rohanasan: An extremely fast backend framework built for rust
 
 > Made with Performance, optimization and ease of use in mind.
-> Currently available in C/C++/Rust programming languages only
-> Please use a linux/unix/mac kind of os
+> 
+> Currently available in C/C++/Rust programming languages only.
+> 
+> Please use a linux/unix/mac kind of os.
 
 # How to use in your project?
 - Open terminal inside the parent folder where you would like to create the folder of your project
@@ -10,7 +12,7 @@
 ```sh
 cargo new myproj
 cd myproj
-cargo add rohanasan-rs
+cargo add rohanasan
 ```
 - For a start you can add this to main.rs:
 
