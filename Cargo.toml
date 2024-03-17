@@ -1,5 +1,5 @@
 [package]
-name = "rohanasan"
+name = "rohanasan-rs"
 version = "0.1.2"
 edition = "2021"
 description="Rohanasan-rs: an extremely fast backend framework for rust!"
