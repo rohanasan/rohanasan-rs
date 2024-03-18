@@ -155,43 +155,45 @@ where
         unsafe {
             read(new_socket, buf.as_mut_ptr() as *mut c_void, 1024);
             puts(buf.as_ptr());
-            let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
-                .unwrap()
-                .clone();
-            let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
-            let method = tokens[0];
-            let mut path: &str = "";
-            let mut get_request = "";
-            let mut post_request = "";
-            let mut protocol = "";
-            if tokens.len() > 2 {
-                path = tokens[1].split("?").collect::<Vec<&str>>()[0];
-                if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
-                    get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
-                } else {
-                    get_request = "";
-                }
-                protocol = tokens[2];
-                if method == "POST" {
-                    post_request = tokens[tokens.len() - 1];
-                }
-            }
-            let the_thing_we_need_to_give_to_func = Request {
-                path,
-                method,
-                get_request,
-                protocol,
-                post_request,
-            };
-            if path.starts_with("/static/") && path != "/static/" && path != "/static" {
-                let mut file_path = String::from(STATIC_FOLDER);
-                file_path.push_str(&path[8..]);
-                println!("{}", file_path);
-
-                let file_path_cstr = CString::new(file_path).expect("Invalid file path");
-                serve_static_file(new_socket, file_path_cstr.as_ptr())
+        }
+        let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
+            .unwrap()
+            .clone();
+        let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
+        let method = tokens[0];
+        let mut path: &str = "";
+        let mut get_request = "";
+        let mut post_request = "";
+        let mut protocol = "";
+        if tokens.len() > 2 {
+            path = tokens[1].split("?").collect::<Vec<&str>>()[0];
+            if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
+                get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
             } else {
-                let response = func(the_thing_we_need_to_give_to_func);
+                get_request = "";
+            }
+            protocol = tokens[2];
+            if method == "POST" {
+                post_request = tokens[tokens.len() - 1];
+            }
+        }
+        let the_thing_we_need_to_give_to_func = Request {
+            path,
+            method,
+            get_request,
+            protocol,
+            post_request,
+        };
+        if path.starts_with("/static/") && path != "/static/" && path != "/static" {
+            let mut file_path = String::from(STATIC_FOLDER);
+            file_path.push_str(&path[8..]);
+            println!("{}", file_path);
+
+            let file_path_cstr = CString::new(file_path).expect("Invalid file path");
+            serve_static_file(new_socket, file_path_cstr.as_ptr())
+        } else {
+            let response = func(the_thing_we_need_to_give_to_func);
+            unsafe {
                 write(
                     new_socket,
                     response.as_ptr() as *const c_void,
@@ -231,9 +233,10 @@ extern "C" {
 /// }
 /// ```
 pub fn send_file(header: &str, file_path: &str) -> &'static str {
-    let mut file = File::open(file_path).expect("Server error");
+    let mut file = File::open(file_path).expect("Please enter the correct path to your html file");
     let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Server error");
+    file.read_to_string(&mut contents)
+        .expect("File can't be read!");
     send_http_response(header, &*contents)
 }
 
@@ -261,56 +264,60 @@ pub fn send_http_response(header: &str, body: &str) -> &'static str {
     thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
 }
 fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
-    unsafe {
-        let file_path_str = CStr::from_ptr(file_path).to_string_lossy();
-        let file_path = file_path_str.trim();
+    let file_path_str = unsafe{CStr::from_ptr(file_path).to_string_lossy()};
+    let file_path = file_path_str.trim();
 
-        // Attempt to open the file
-        let mut file = match File::open(file_path) {
-            Ok(file) => file,
-            Err(_) => {
-                let not_found_response = b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>404 Not Found</h1>";
+    // Attempt to open the file
+    let mut file = match File::open(file_path) {
+        Ok(file) => file,
+        Err(_) => {
+            let not_found_response =
+                b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>404 Not Found</h1>";
+            unsafe {
                 write(
                     client_socket,
                     not_found_response.as_ptr() as *const c_void,
                     not_found_response.len(),
                 );
                 close(client_socket);
-                return;
             }
-        };
+            return;
+        }
+    };
 
-        // Determine content type based on file extension
-        let content_type = determine_content_type(file_path);
+    // Determine content type based on file extension
+    let content_type = determine_content_type(file_path);
 
-        // Send HTTP response header with correct content type
-        let response_header = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\n\r\n", content_type);
-        let response_header_cstr = CString::new(response_header.clone())
-            .expect("Failed to create response header CString");
+    // Send HTTP response header with correct content type
+    let response_header = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\n\r\n", content_type);
+    let response_header_cstr =
+        CString::new(response_header.clone()).expect("Failed to create response header CString");
+    unsafe {
         write(
             client_socket,
             response_header_cstr.as_ptr() as *const c_void,
             response_header.len(),
-        );
+        )
+    };
 
-        // Send file content
-        let mut buffer = [0; BUFFER_SIZE];
-        loop {
-            match file.read(&mut buffer) {
-                Ok(0) => break,
-                Ok(bytes_read) => {
-                    write(client_socket, buffer.as_ptr() as *const c_void, bytes_read);
-                }
-                Err(_) => {
-                    eprintln!("Error reading file");
-                    break;
-                }
+    // Send file content
+    let mut buffer = [0; BUFFER_SIZE];
+    loop {
+        match file.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(bytes_read) => {
+                unsafe { write(client_socket, buffer.as_ptr() as *const c_void, bytes_read) };
+            }
+            Err(_) => {
+                eprintln!("Error reading file");
+                break;
             }
         }
-
-        close(client_socket);
     }
+
+    unsafe { close(client_socket) };
 }
+
 // Function to determine content type based on file extension
 fn determine_content_type(file_path: &str) -> &str {
     match file_path.rsplit('.').next() {
