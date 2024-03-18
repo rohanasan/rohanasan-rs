@@ -75,6 +75,8 @@ pub struct Request {
 ///     serve(init(8080), handle);
 /// }
 /// ```
+
+#[cfg(not(target_os = "linux"))]
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     let opt: i32 = 1;
 
@@ -88,6 +90,38 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
         sin_addr: in_addr { s_addr: INADDR_ANY },
         sin_zero: [0; 8],
         sin_len: 1,
+    };
+    let addrlen: usize = size_of::<sockaddr_in>();
+    let res: i32 = unsafe {
+        setsockopt(
+            server_fd,
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            &opt as *const i32 as *const c_void,
+            size_of::<i32>() as socklen_t,
+        )
+    };
+    if res == -1 {
+        panic!("Failed to set socket option");
+    }
+    (server_fd, address, addrlen)
+}
+
+
+
+#[cfg(target_os = "linux")]
+pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
+    let opt: i32 = 1;
+
+    let server_fd: i32 = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
+    if server_fd == -1 {
+        panic!("Failed to create socket");
+    }
+        let address: sockaddr_in = sockaddr_in {
+        sin_family: AF_INET as sa_family_t,
+        sin_port: unsafe { htons(port) },
+        sin_addr: in_addr { s_addr: INADDR_ANY },
+        sin_zero: [0; 8],
     };
     let addrlen: usize = size_of::<sockaddr_in>();
     let res: i32 = unsafe {
