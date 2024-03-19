@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use async_std::task;
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
@@ -30,6 +31,10 @@ use libc::{
     setsockopt, sockaddr, sockaddr_in, socket, socklen_t, write, AF_INET, INADDR_ANY, SOCK_STREAM,
     SOL_SOCKET, SO_REUSEADDR,
 };
+
+mod rohanasan_macro;
+use urldecode;
+
 const STATIC_FOLDER: &str = "./static/";
 /// This is the Default Html Header.
 pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
@@ -64,16 +69,17 @@ pub struct Request {
 /// Provide this a port datatype: `u16`,
 /// use this like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve};
+/// use rohanasan::{init, Request, serve, async_std};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     "Hello!"
 /// }
 ///
-/// fn main(){
-///     // pass init a u16 type port
-///     serve(init(8080), handle);
-/// }
+/// async_std!(
+///      async fn main() {
+///          serve(init(8080), handle).await;
+///      }
+/// );
 /// ```
 
 #[cfg(not(target_os = "linux"))]
@@ -107,8 +113,23 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     (server_fd, address, addrlen)
 }
 
-
-
+/// Use this function to initialize rohanasan backend framework.
+/// Provide this a port datatype: `u16`,
+/// use this like this:
+/// ```rust
+/// use rohanasan::{init, Request, serve, async_std};
+///
+/// fn handle(request: Request) -> &'static str{
+///     "Hello!"
+/// }
+///
+/// async_std!(
+///      async fn main() {
+///          // pass a u16 type port
+///          serve(init(8080), handle).await;
+///      }
+/// );
+/// ```
 #[cfg(target_os = "linux")]
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     let opt: i32 = 1;
@@ -117,7 +138,7 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     if server_fd == -1 {
         panic!("Failed to create socket");
     }
-        let address: sockaddr_in = sockaddr_in {
+    let address: sockaddr_in = sockaddr_in {
         sin_family: AF_INET as sa_family_t,
         sin_port: unsafe { htons(port) },
         sin_addr: in_addr { s_addr: INADDR_ANY },
@@ -143,22 +164,22 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// Provide this the value returned by serve function and a handle function as well,
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve};
+/// use rohanasan::{init, Request, serve, async_std};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     "Hello!"
 /// }
 ///
-/// fn main(){
-///     // use serve to serve the port.
-///     serve(init(8080), handle);
-/// }
+/// async_std!(
+///      async fn main() {
+///          serve(init(8080), handle).await;
+///      }
+/// );
 /// ```
-pub fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
+pub async fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
 where
-    F: Fn(Request) -> &'static str,
+    F: Fn(Request) -> &'static str + Send + Sync + 'static + Copy,
 {
-    let mut new_socket: i32;
     let (server_fd, address, addrlen) = args;
     let if_bind: i32 = unsafe {
         bind(
@@ -175,7 +196,7 @@ where
         panic!("Failed to listen");
     }
     loop {
-        new_socket = unsafe {
+        let new_socket: i32 = unsafe {
             accept(
                 server_fd,
                 &address as *const _ as *mut sockaddr,
@@ -185,57 +206,59 @@ where
         if new_socket == -1 {
             continue;
         }
-        let mut buf: [c_char; 1024] = [0; 1024]; // Allocate buffer
-        unsafe {
-            read(new_socket, buf.as_mut_ptr() as *mut c_void, 1024);
-            puts(buf.as_ptr());
-        }
-        let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
-            .unwrap()
-            .clone();
-        let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
-        let method = tokens[0];
-        let mut path: &str = "";
-        let mut get_request = "";
-        let mut post_request = "";
-        let mut protocol = "";
-        if tokens.len() > 2 {
-            path = tokens[1].split("?").collect::<Vec<&str>>()[0];
-            if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
-                get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
-            } else {
-                get_request = "";
-            }
-            protocol = tokens[2];
-            if method == "POST" {
-                post_request = tokens[tokens.len() - 1];
-            }
-        }
-        let the_thing_we_need_to_give_to_func = Request {
-            path,
-            method,
-            get_request,
-            protocol,
-            post_request,
-        };
-        if path.starts_with("/static/") && path != "/static/" && path != "/static" {
-            let mut file_path = String::from(STATIC_FOLDER);
-            file_path.push_str(&path[8..]);
-            println!("{}", file_path);
-
-            let file_path_cstr = CString::new(file_path).expect("Invalid file path");
-            serve_static_file(new_socket, file_path_cstr.as_ptr())
-        } else {
-            let response = func(the_thing_we_need_to_give_to_func);
+        task::spawn(async move {
+            let mut buf: [c_char; 1024] = [0; 1024]; // Allocate buffer
             unsafe {
-                write(
-                    new_socket,
-                    response.as_ptr() as *const c_void,
-                    response.len(),
-                ); // Use the correct length
-                close(new_socket);
+                read(new_socket, buf.as_mut_ptr() as *mut c_void, 1024);
+                puts(buf.as_ptr());
             }
-        }
+            let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
+                .unwrap()
+                .clone();
+            let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
+            let method = tokens[0];
+            let mut path: &str = "";
+            let mut get_request = "";
+            let mut post_request = "";
+            let mut protocol = "";
+            if tokens.len() > 2 {
+                path = tokens[1].split("?").collect::<Vec<&str>>()[0];
+                if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
+                    get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
+                } else {
+                    get_request = "";
+                }
+                protocol = tokens[2];
+                if method == "POST" {
+                    post_request = tokens[tokens.len() - 1];
+                }
+            }
+            let the_thing_we_need_to_give_to_func = Request {
+                path,
+                method,
+                get_request,
+                protocol,
+                post_request,
+            };
+            if path.starts_with("/static/") && path != "/static/" && path != "/static" {
+                let mut file_path = String::from(STATIC_FOLDER);
+                file_path.push_str(&path[8..]);
+                println!("{}", file_path);
+
+                let file_path_cstr = CString::new(file_path).expect("Invalid file path");
+                serve_static_file(new_socket, file_path_cstr.as_ptr())
+            } else {
+                let response = func(the_thing_we_need_to_give_to_func);
+                unsafe {
+                    write(
+                        new_socket,
+                        response.as_ptr() as *const c_void,
+                        response.len(),
+                    ); // Use the correct length
+                    close(new_socket);
+                }
+            }
+        });
     }
 }
 
@@ -251,7 +274,7 @@ extern "C" {
 /// Provide this a header and a file path.
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER};
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, async_std};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     if request.path == "/"{
@@ -261,10 +284,11 @@ extern "C" {
 ///         send_file(ERROR_404_HEADER ,"./html/404.html")
 ///     }
 /// }
-///
-/// fn main() {
-///     serve(init(8080), handle);
-/// }
+/// async_std!(
+///      async fn main() {
+///          serve(init(8080), handle).await;
+///      }
+/// );
 /// ```
 pub fn send_file(header: &str, file_path: &str) -> &'static str {
     let mut file = File::open(file_path).expect("Please enter the correct path to your html file");
@@ -278,7 +302,7 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 /// Provide this a header and a body.
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER};
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, async_std};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     if request.path == "/"{
@@ -288,17 +312,18 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 ///         send_http_response(ERROR_404_HEADER ,"<h1>404</h1>")
 ///     }
 /// }
-///
-/// fn main() {
-///     serve(init(8080), handle);
-/// }
+/// async_std!(
+///      async fn main() {
+///          serve(init(8080), handle).await;
+///      }
+/// );
 /// ```
 pub fn send_http_response(header: &str, body: &str) -> &'static str {
     let thing: String = header.to_string().clone() + body;
     thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
 }
 fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
-    let file_path_str = unsafe{CStr::from_ptr(file_path).to_string_lossy()};
+    let file_path_str = unsafe { CStr::from_ptr(file_path).to_string_lossy() };
     let file_path = file_path_str.trim();
 
     // Attempt to open the file
@@ -365,4 +390,10 @@ fn determine_content_type(file_path: &str) -> &str {
         Some("htm") | Some("html") => "text/html",
         _ => "application/octet-stream",
     }
+}
+
+/// url decode wrapper
+/// crate used: url decode, but have made the wrapper suit rohanasan's needs
+pub fn decode(x: &str) -> &'static str {
+    urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
 }

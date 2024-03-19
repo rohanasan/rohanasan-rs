@@ -1,6 +1,6 @@
 [package]
 name = "rohanasan"
-version = "0.2.5"
+version = "0.2.9"
 edition = "2021"
 description="Rohanasan: An extremely fast backend framework for rust!"
 license="MIT"
@@ -8,8 +8,10 @@ repository="https://github.com/rohanasan/rohanasan-rs"
 categories = ["web-programming::http-server", "web-programming", "web-programming::websocket"]
 authors = ["Rohan Vashisht"]
 readme = "README.md"
-keywords = ["web", "http", "server", "backend", "backend-framework"]
+keywords = ["web", "http", "server", "backend", "framework"]
 publish = true
 
 [dependencies]
 libc = "0.2.153"
+async-std = {version = "1.12.0", features = ["attributes"]}
+urldecode = "0.1.1"
