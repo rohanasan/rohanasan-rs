@@ -1,7 +1,9 @@
 use rohanasan::{
-    async_std, decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
+    decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
     ERROR_404_HEADER,
 };
+use rohanasan::async_rohanasan;
+
 
 fn handle(request: Request) -> &'static str {
     if request.method == "GET" {
@@ -24,7 +26,7 @@ fn handle(request: Request) -> &'static str {
     }
 }
 
-async_std!(
+async_rohanasan!(
     async fn main() {
         println!("Listening at http://localhost:8080");
         serve(init(8080), handle).await;

@@ -20,20 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use async_std::task;
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
 
+use async_std::task;
 use libc::{
-    accept, bind, c_char, c_int, c_void, close, in_addr, listen, puts, read, sa_family_t,
-    setsockopt, sockaddr, sockaddr_in, socket, socklen_t, write, AF_INET, INADDR_ANY, SOCK_STREAM,
-    SOL_SOCKET, SO_REUSEADDR,
+    accept, AF_INET, bind, c_char, c_int, c_void, close, in_addr, INADDR_ANY, listen, puts,
+    read, sa_family_t, setsockopt, SO_REUSEADDR, SOCK_STREAM, sockaddr, sockaddr_in, socket, socklen_t,
+    SOL_SOCKET, write,
 };
-
-mod rohanasan_macro;
 use urldecode;
+
 
 const STATIC_FOLDER: &str = "./static/";
 /// This is the Default Html Header.
@@ -396,4 +395,14 @@ fn determine_content_type(file_path: &str) -> &str {
 /// crate used: url decode, but have made the wrapper suit rohanasan's needs
 pub fn decode(x: &str) -> &'static str {
     urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
+}
+
+pub use async_std;
+
+#[macro_export]
+macro_rules! async_rohanasan {
+    ($($body:tt)*) => {
+        #[$crate::async_std::main(crate = $crate::async_std)]
+        $($body)*
+    };
 }
