@@ -24,11 +24,23 @@ use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
-pub use async_std::main as rohanasan;
+pub use async_std::task;
 
+// Define the custom async_main macro.
+#[macro_export]
+macro_rules! rohanasan {
+    // Define the macro pattern.
+    ($($body:tt)*) => {
+        // Define the main function, which is asynchronous.
+        fn main() {
+            // Use async-std task spawning to run the asynchronous block provided.
+            task::block_on(async {
+                $($body)*
+            });
+        }
+    };
+}
 
-
-use async_std::task;
 use libc::{
     accept, AF_INET, bind, c_char, c_int, c_void, close, in_addr, INADDR_ANY, listen, puts,
     read, sa_family_t, setsockopt, SO_REUSEADDR, SOCK_STREAM, sockaddr, sockaddr_in, socket, socklen_t,
