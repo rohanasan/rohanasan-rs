@@ -1,8 +1,4 @@
-use rohanasan::{
-    decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
-    ERROR_404_HEADER,
-};
-use rohanasan::async_rohanasan;
+use rohanasan::{decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
 
 
 fn handle(request: Request) -> &'static str {
@@ -25,10 +21,8 @@ fn handle(request: Request) -> &'static str {
         send_http_response(ERROR_404_HEADER, "The request was a post request!!!")
     }
 }
-
-async_rohanasan!(
-    async fn main() {
-        println!("Listening at http://localhost:8080");
-        serve(init(8080), handle).await;
-    }
-);
+#[rohanasan]
+async fn main() {
+    println!("Listening at http://localhost:8080");
+    serve(init(8080), handle).await;
+}

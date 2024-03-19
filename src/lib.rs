@@ -24,6 +24,9 @@ use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
+pub use async_std::main as rohanasan;
+
+
 
 use async_std::task;
 use libc::{
@@ -397,11 +400,4 @@ pub fn decode(x: &str) -> &'static str {
     urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
 }
 
-pub use async_std;
 
-// Re-export the macro
-// Re-export the async_std crate
-
-// Re-export the macro
-#[macro_use]
-pub mod macros;
