@@ -399,10 +399,9 @@ pub fn decode(x: &str) -> &'static str {
 
 pub use async_std;
 
-#[macro_export]
-macro_rules! async_rohanasan {
-    ($($body:tt)*) => {
-        #[$crate::async_std::main(crate = $crate::async_std)]
-        $($body)*
-    };
-}
+// Re-export the macro
+// Re-export the async_std crate
+
+// Re-export the macro
+#[macro_use]
+pub mod macros;
