@@ -1,6 +1,6 @@
 [package]
 name = "rohanasan"
-version = "0.4.49"
+version = "0.4.54"
 edition = "2021"
 description="An extremely fast backend framework for rust! Built from scratch, easy to use and asynchronous. Available for multiple programming languages and platforms like unix, linux, mac, FreeBSD. Made using web sockets."
 license="MIT"

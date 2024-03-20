@@ -49,10 +49,31 @@ const STATIC_FOLDER: &str = "./static/";
 pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
 
 /// This is the Default Json Header.
-pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n";
+
+/// This is the Default 403 error header
+pub const ERROR_403_HEADER: &str = "HTTP/1.1 403 Forbidden\nContent-Type: text/html\n\n";
+
+/// This is the Default Plain Texts' Header
+pub const DEFAULT_PLAIN_TEXT_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\n";
+
+/// This is the Default 500 errors' header
+pub const DEFAULT_500_HEADER: &str = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\n\n";
 
 /// This is the Default 404 errors' Header.
 pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n";
+
+/// This is the default 301 permanently moved error's header.
+pub const DEFAULT_301_HEADER: &str = "HTTP/1.1 301 Moved Permanently\nContent-Type: text/html\n\n";
+
+/// This is the default 400 errors' header.
+pub const DEFAULT_400_HEADER: &str = "HTTP/1.1 400 Bad Request\nContent-Type: text/html\n\n";
+
+/// This is the default 401 unauthorized errors' header.
+pub const DEFAULT_401_HEADER: &str = "HTTP/1.1 401 Unauthorized\nContent-Type: text/html\n\n";
+
+/// This is the default 402 payment required errors' header.
+pub const DEFAULT_402_HEADER: &str = "HTTP/1.1 402 Payment Required\nContent-Type: text/html\n\n";
 
 /// Take this as a parameter in your handle function
 /// This contains 5 things:
@@ -226,8 +247,7 @@ where
                 // puts(buf.as_ptr());
             }
             let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
-                .unwrap()
-                .clone();
+                .unwrap();
             let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
             let method = tokens[0];
             let mut path: &str = "";
@@ -256,7 +276,7 @@ where
             if path.starts_with("/static/") && path != "/static/" && path != "/static" {
                 let mut file_path = String::from(STATIC_FOLDER);
                 file_path.push_str(&path[8..]);
-                println!("{}", file_path);
+                // println!("{}", file_path);
 
                 let file_path_cstr = CString::new(file_path).expect("Invalid file path");
                 serve_static_file(new_socket, file_path_cstr.as_ptr());

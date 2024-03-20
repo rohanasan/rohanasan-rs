@@ -4,6 +4,7 @@ use rohanasan::{
 };
 
 fn handle(request: Request) -> &'static str {
+
     if request.method == "GET" {
         if request.path == "/" {
             send_file(DEFAULT_HTML_HEADER, "./html/index.html")
