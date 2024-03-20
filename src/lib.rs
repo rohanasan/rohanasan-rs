@@ -20,35 +20,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+pub use async_std::task::block_on;
+use libc::{
+    accept, bind, c_char, c_int, c_void, close, in_addr, listen, recv, sa_family_t, send,
+    setsockopt, sockaddr, sockaddr_in, socket, socklen_t, AF_INET, INADDR_ANY, SOCK_STREAM,
+    SOL_SOCKET, SO_REUSEPORT,
+};
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
-pub use async_std::task;
 
 // Define the custom async_main macro.
 #[macro_export]
 macro_rules! rohanasan {
     // Define the macro pattern.
     ($($body:tt)*) => {
-        // Define the main function, which is asynchronous.
-        use $crate::task as why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da;
-        fn main() {
-            // Use async-std task spawning to run the asynchronous block provided.
-            why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da::block_on(async {
-                $($body)*
-            });
-        }
+        use $crate::block_on as why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da;
+        // Use async-std task spawning to run the asynchronous block provided.
+        why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da(async {
+            $($body)*
+        });
     };
 }
-
-use libc::{
-    accept, AF_INET, bind, c_char, c_int, c_void, close, in_addr, INADDR_ANY, listen, puts,
-    read, sa_family_t, setsockopt, SO_REUSEADDR, SOCK_STREAM, sockaddr, sockaddr_in, socket, socklen_t,
-    SOL_SOCKET, write,
-};
-use urldecode;
-
 
 const STATIC_FOLDER: &str = "./static/";
 /// This is the Default Html Header.
@@ -90,16 +84,18 @@ pub struct Request {
 ///     "Hello!"
 /// }
 ///
-/// rohanasan!(
-///          serve(init(8080), handle).await;
-/// );
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
 /// ```
 
 #[cfg(not(target_os = "linux"))]
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
-    let opt: i32 = 1;
+    let opt: c_int = 1;
 
-    let server_fd: i32 = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
+    let server_fd: c_int = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
     if server_fd == -1 {
         panic!("Failed to create socket");
     }
@@ -111,13 +107,13 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
         sin_len: 1,
     };
     let addrlen: usize = size_of::<sockaddr_in>();
-    let res: i32 = unsafe {
+    let res: c_int = unsafe {
         setsockopt(
             server_fd,
             SOL_SOCKET,
-            SO_REUSEADDR,
+            SO_REUSEPORT,
             &opt as *const i32 as *const c_void,
-            size_of::<i32>() as socklen_t,
+            std::mem::size_of_val(&opt) as socklen_t,
         )
     };
     if res == -1 {
@@ -136,9 +132,11 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 ///     "Hello!"
 /// }
 ///
-/// rohanasan!(
-///          serve(init(8080), handle).await;
-/// );
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
 /// ```
 #[cfg(target_os = "linux")]
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
@@ -180,9 +178,11 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 ///     "Hello!"
 /// }
 ///
-/// rohanasan!(
-///          serve(init(8080), handle).await;
-/// );
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
 /// ```
 pub async fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
 where
@@ -214,11 +214,16 @@ where
         if new_socket == -1 {
             continue;
         }
-        task::spawn(async move {
-            let mut buf: [c_char; 1024] = [0; 1024]; // Allocate buffer
+        async_std::task::spawn(async move {
+            let mut buf: [c_char; BUFFER_SIZE] = [0; BUFFER_SIZE]; // Allocate buffer
             unsafe {
-                read(new_socket, buf.as_mut_ptr() as *mut c_void, 1024);
-                puts(buf.as_ptr());
+                recv(
+                    new_socket,
+                    buf.as_mut_ptr() as *mut c_void,
+                    BUFFER_SIZE - 1,
+                    0,
+                );
+                // puts(buf.as_ptr());
             }
             let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
                 .unwrap()
@@ -254,14 +259,18 @@ where
                 println!("{}", file_path);
 
                 let file_path_cstr = CString::new(file_path).expect("Invalid file path");
-                serve_static_file(new_socket, file_path_cstr.as_ptr())
+                serve_static_file(new_socket, file_path_cstr.as_ptr());
+                unsafe {
+                    close(new_socket);
+                }
             } else {
                 let response = func(the_thing_we_need_to_give_to_func);
                 unsafe {
-                    write(
+                    send(
                         new_socket,
                         response.as_ptr() as *const c_void,
                         response.len(),
+                        0,
                     ); // Use the correct length
                     close(new_socket);
                 }
@@ -292,9 +301,11 @@ extern "C" {
 ///         send_file(ERROR_404_HEADER ,"./html/404.html")
 ///     }
 /// }
-/// rohanasan!(
-///          serve(init(8080), handle).await;
-/// );
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
 /// ```
 pub fn send_file(header: &str, file_path: &str) -> &'static str {
     let mut file = File::open(file_path).expect("Please enter the correct path to your html file");
@@ -318,9 +329,11 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 ///         send_http_response(ERROR_404_HEADER ,"<h1>404</h1>")
 ///     }
 /// }
-/// rohanasan!(
-///          serve(init(8080), handle).await;
-/// );
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
 /// ```
 pub fn send_http_response(header: &str, body: &str) -> &'static str {
     let thing: String = header.to_string().clone() + body;
@@ -337,10 +350,11 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
             let not_found_response =
                 b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>404 Not Found</h1>";
             unsafe {
-                write(
+                send(
                     client_socket,
                     not_found_response.as_ptr() as *const c_void,
                     not_found_response.len(),
+                    0,
                 );
                 close(client_socket);
             }
@@ -356,10 +370,11 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
     let response_header_cstr =
         CString::new(response_header.clone()).expect("Failed to create response header CString");
     unsafe {
-        write(
+        send(
             client_socket,
             response_header_cstr.as_ptr() as *const c_void,
             response_header.len(),
+            0,
         )
     };
 
@@ -369,7 +384,14 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
         match file.read(&mut buffer) {
             Ok(0) => break,
             Ok(bytes_read) => {
-                unsafe { write(client_socket, buffer.as_ptr() as *const c_void, bytes_read) };
+                unsafe {
+                    send(
+                        client_socket,
+                        buffer.as_ptr() as *const c_void,
+                        bytes_read,
+                        0,
+                    )
+                };
             }
             Err(_) => {
                 eprintln!("Error reading file");
@@ -401,5 +423,3 @@ fn determine_content_type(file_path: &str) -> &str {
 pub fn decode(x: &str) -> &'static str {
     urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
 }
-
-

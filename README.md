@@ -29,12 +29,13 @@ fn handle(request:Request) -> &'static str{
     }
 }
 
-// this is your fn main
-rohanasan! {
-    serve(init(8080), handle).await;
+fn main() {
+    println!("Listening at http://localhost:8080");
+    rohanasan!{
+        serve(init(8080), handle).await;
+    }
 }
 ```
-[Click here to see how to use fn main and not rohanasan's macro(link number 30)](examples/example.rs)
 - `cargo run` to run your project.
 - Go to: `localhost:8080`.
 - Enjoy using Rohanasan!
@@ -64,3 +65,7 @@ https://discord.gg/Yg2A3mEret
 
 ### Contribute:
 https://www.buymeacoffee.com/rohanvashisht
+
+Please star rohanasan's github repo:
+
+https://github.com/rohanasan/rohanasan-rs

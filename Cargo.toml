@@ -1,11 +1,11 @@
 [package]
 name = "rohanasan"
-version = "0.4.4"
+version = "0.4.49"
 edition = "2021"
-description="Rohanasan: An extremely fast backend framework for rust!"
+description="An extremely fast backend framework for rust! Built from scratch, easy to use and asynchronous. Available for multiple programming languages and platforms like unix, linux, mac, FreeBSD. Made using web sockets."
 license="MIT"
 repository="https://github.com/rohanasan/rohanasan-rs"
-categories = ["web-programming::http-server", "web-programming", "web-programming::websocket"]
+categories = ["web-programming::http-server", "web-programming::websocket","asynchronous","os::unix-apis","os::linux-apis"]
 authors = ["Rohan Vashisht"]
 readme = "README.md"
 keywords = ["web", "http", "server", "backend", "framework"]
