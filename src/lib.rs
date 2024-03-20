@@ -32,9 +32,10 @@ macro_rules! rohanasan {
     // Define the macro pattern.
     ($($body:tt)*) => {
         // Define the main function, which is asynchronous.
+        use $crate::task as why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da;
         fn main() {
             // Use async-std task spawning to run the asynchronous block provided.
-            task::block_on(async {
+            why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da::block_on(async {
                 $($body)*
             });
         }
@@ -83,16 +84,14 @@ pub struct Request {
 /// Provide this a port datatype: `u16`,
 /// use this like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, async_std};
+/// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     "Hello!"
 /// }
 ///
-/// async_std!(
-///      async fn main() {
+/// rohanasan!(
 ///          serve(init(8080), handle).await;
-///      }
 /// );
 /// ```
 
@@ -131,17 +130,14 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// Provide this a port datatype: `u16`,
 /// use this like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, async_std};
+/// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     "Hello!"
 /// }
 ///
-/// async_std!(
-///      async fn main() {
-///          // pass a u16 type port
+/// rohanasan!(
 ///          serve(init(8080), handle).await;
-///      }
 /// );
 /// ```
 #[cfg(target_os = "linux")]
@@ -178,16 +174,14 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// Provide this the value returned by serve function and a handle function as well,
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, async_std};
+/// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     "Hello!"
 /// }
 ///
-/// async_std!(
-///      async fn main() {
+/// rohanasan!(
 ///          serve(init(8080), handle).await;
-///      }
 /// );
 /// ```
 pub async fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
@@ -288,7 +282,7 @@ extern "C" {
 /// Provide this a header and a file path.
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, async_std};
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     if request.path == "/"{
@@ -298,10 +292,8 @@ extern "C" {
 ///         send_file(ERROR_404_HEADER ,"./html/404.html")
 ///     }
 /// }
-/// async_std!(
-///      async fn main() {
+/// rohanasan!(
 ///          serve(init(8080), handle).await;
-///      }
 /// );
 /// ```
 pub fn send_file(header: &str, file_path: &str) -> &'static str {
@@ -316,7 +308,7 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 /// Provide this a header and a body.
 /// use it like this:
 /// ```rust
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, async_std};
+/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
 ///     if request.path == "/"{
@@ -326,10 +318,8 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 ///         send_http_response(ERROR_404_HEADER ,"<h1>404</h1>")
 ///     }
 /// }
-/// async_std!(
-///      async fn main() {
+/// rohanasan!(
 ///          serve(init(8080), handle).await;
-///      }
 /// );
 /// ```
 pub fn send_http_response(header: &str, body: &str) -> &'static str {

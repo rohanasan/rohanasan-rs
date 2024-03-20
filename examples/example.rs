@@ -1,5 +1,4 @@
-use rohanasan::{decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, task, rohanasan};
-
+use rohanasan::{decode, init, send_file, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
 
 fn handle(request: Request) -> &'static str {
     if request.method == "GET" {
@@ -22,8 +21,18 @@ fn handle(request: Request) -> &'static str {
     }
 }
 
-// This is the fn main
+// this is your fn main:
 rohanasan! {
     println!("Listening at http://localhost:8080");
     serve(init(8080), handle).await;
 }
+
+// If you need to use fn main:
+// you would be required to cargo add async-std and features as attributes.
+// then you can do:
+// #[async_std::main]
+// async fn main(){
+//    println!("Listening at http://localhost:8080");
+//    serve(init(8080), handle).await;
+// }
+// motive of rohanasan is to provide you performance with ease of use, hence, I have made rohanasan's macro.

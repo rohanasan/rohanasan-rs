@@ -18,22 +18,23 @@ cargo add rohanasan
 - For a start you can add this to main.rs:
 
 ```rust
-use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, async_std};
+use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
 
 fn handle(request:Request) -> &'static str{
-    if request.path == "/"{
+    if request.path == "/" {
         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
     }
     else{
         send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
     }
 }
-async_std!(
-     async fn main() {
-         serve(init(8080), handle).await;
-     }
-);
+
+// this is your fn main
+rohanasan! {
+    serve(init(8080), handle).await;
+}
 ```
+[Click here to see how to use fn main and not rohanasan's macro(link number 30)](examples/example.rs)
 - `cargo run` to run your project.
 - Go to: `localhost:8080`.
 - Enjoy using Rohanasan!
@@ -58,6 +59,7 @@ https://discord.gg/Yg2A3mEret
 - Add feature to change the directory path of the public folder ☑️ Done!!!!
 - Asynchronous file request handling ☑️ Done!!!!
 - Add feature to give the user an option to add index.html to static folder
+- Add statistics of performance.
 - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
 
 ### Contribute:
