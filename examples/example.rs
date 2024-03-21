@@ -3,7 +3,7 @@ use rohanasan::{
     ERROR_404_HEADER,
 };
 
-fn handle(request: Request) -> &'static str {
+fn handle(request: Request) -> String {
     if request.method == "GET" {
         if request.path == "/" {
             send_file(DEFAULT_HTML_HEADER, "./html/index.html")

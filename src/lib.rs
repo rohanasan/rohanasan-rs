@@ -44,7 +44,7 @@
 //! ```no_run
 //! use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
 //!
-//! fn handle(request:Request) -> &'static str{
+//! fn handle(request:Request) -> String {
 //!     if request.path == "/" {
 //!         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
 //!     }
@@ -73,7 +73,7 @@
 //! ```
 //!
 //! ## Discord server link:
-//! https://discord.gg/Yg2A3mEret
+//! [https://discord.gg/Yg2A3mEret](https://discord.gg/Yg2A3mEret)
 //!
 //! ### Current Features:
 //! - Can run a server at a specified port
@@ -88,18 +88,49 @@
 //! - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
 //!
 //! ### Contribute:
-//! https://www.buymeacoffee.com/rohanvashisht
+//! [https://www.buymeacoffee.com/rohanvashisht](https://www.buymeacoffee.com/rohanvashisht)
 //!
 //! Please star rohanasan's github repo:
 //!
-//! https://github.com/rohanasan/rohanasan-rs
+//! [https://github.com/rohanasan/rohanasan-rs](https://github.com/rohanasan/rohanasan-rs)
+//! # Example
+//! ## Hello world (Html):
+//! > Basic Html implementation of hello world:
+//! ```no_run
+//! use rohanasan::{rohanasan, serve, init, Request, send_http_response, DEFAULT_HTML_HEADER};
+//!
+//! fn handle(request: Request) -> String {
+//!     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello, World</h1>")
+//! }
+//!
+//! fn main() {
+//!     rohanasan!{
+//!         serve(init(8080), handle).await;
+//!     }
+//! }
+//! ```
+//! ## Hello world (Html File):
+//! > Basic Html implementation of hello world:
+//! ```no_run
+//! use rohanasan::{rohanasan, serve, init, Request, send_file, DEFAULT_HTML_HEADER};
+//!
+//! fn handle(request: Request) -> String {
+//!     send_file(DEFAULT_HTML_HEADER, "./html/index.html")
+//! }
+//!
+//! fn main() {
+//!     rohanasan!{
+//!         serve(init(8080), handle).await;
+//!     }
+//! }
+//! ```
+//! # Points to remember:
+//! - There is no need to import async_std for using rohanasan macro.
+//! - There is no need to import url-decode for using decode funciton
+//! - By default rohanasan serves any folder named static present in the same directory where you are running the server.
 
 pub use async_std::task::block_on;
-use libc::{
-    accept, bind, c_char, c_int, c_void, close, in_addr, listen, recv, sa_family_t, send,
-    setsockopt, sockaddr, sockaddr_in, socket, socklen_t, AF_INET, INADDR_ANY, SOCK_STREAM,
-    SOL_SOCKET, SO_REUSEPORT,
-};
+use libc::{accept, bind, c_char, c_int, c_void, close, in_addr, listen, recv, sa_family_t, send, setsockopt, sockaddr, sockaddr_in, socket, socklen_t, AF_INET, INADDR_ANY, SOCK_STREAM, SOL_SOCKET, SO_REUSEPORT, puts};
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::Read;
@@ -115,10 +146,10 @@ use std::mem::size_of;
 /// ```
 /// ## Example:
 /// ```rust
-/// use rohanasan::{init, Request, serve, rohanasan};
+/// use rohanasan::{init, Request, serve, rohanasan, send_http_response, DEFAULT_HTML_HEADER};
 ///
-/// fn handle(request: Request) -> &'static str{
-///     "Hello!"
+/// fn handle(request: Request) -> String {
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello world!</h1>")
 /// }
 ///
 /// fn main() {
@@ -206,8 +237,8 @@ pub struct Request {
 /// ```rust
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
-/// fn handle(request: Request) -> &'static str{
-///     "Hello!"
+/// fn handle(request: Request) -> String {
+///     "Hello!".parse().unwrap()
 /// }
 ///
 /// fn main() {
@@ -259,8 +290,8 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// ```no_run
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
-/// fn handle(request: Request) -> &'static str{
-///     "Hello!"
+/// fn handle(request: Request) -> String {
+///     "Hello!".parse().unwrap()
 /// }
 ///
 /// fn main() {
@@ -311,8 +342,8 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// ```no_run
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
-/// fn handle(request: Request) -> &'static str{
-///     "Hello!"
+/// fn handle(request: Request) -> String {
+///     "Hello!".parse().unwrap()
 /// }
 ///
 /// fn main() {
@@ -323,7 +354,7 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// ```
 pub async fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
 where
-    F: Fn(Request) -> &'static str + Send + Sync + 'static + Copy,
+    F: Fn(Request) -> String + Send + Sync + 'static + Copy,
 {
     let (server_fd, address, addrlen) = args;
     let if_bind: i32 = unsafe {
@@ -353,6 +384,7 @@ where
         }
         async_std::task::spawn(async move {
             let mut buf: [c_char; BUFFER_SIZE] = [0; BUFFER_SIZE]; // Allocate buffer
+
             unsafe {
                 recv(
                     new_socket,
@@ -360,58 +392,75 @@ where
                     BUFFER_SIZE - 1,
                     0,
                 );
-                // puts(buf.as_ptr());
+                puts(buf.as_ptr());
             }
-            let x: String = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<_>>())
-                .unwrap();
-            let tokens = x.leak().split_whitespace().collect::<Vec<&str>>(); // I hate leaks, can someone please provide a better way to do this? :)
-            let method = tokens[0];
-            let mut path: &str = "";
-            let mut get_request = "";
-            let mut post_request = "";
-            let mut protocol = "";
-            if tokens.len() > 2 {
-                path = tokens[1].split('?').collect::<Vec<&str>>()[0];
-                if path.ends_with('/') && path != "/" {
-                    path = &path[0..path.len() - 1];
-                }
-                if tokens[1].split('?').collect::<Vec<&str>>().len() > 1 {
-                    get_request = tokens[1].split('?').collect::<Vec<&str>>()[1];
-                } else {
-                    get_request = "";
-                }
-                protocol = tokens[2];
-                if method == "POST" {
-                    post_request = tokens[tokens.len() - 1];
-                }
-            }
-            let the_thing_we_need_to_give_to_func = Request {
-                path,
-                method,
-                get_request,
-                protocol,
-                post_request,
-            };
-            if path.starts_with("/static/") && path != "/static/" && path != "/static" {
-                let mut file_path = String::from(STATIC_FOLDER);
-                file_path.push_str(&path[8..]);
-                // println!("{}", file_path);
+            let mut x = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<u8>>());
+            match x {
+                Ok(x) => {
+                    let tokens = x.leak().split_whitespace().collect::<Vec<&str>>();
+                    let method = tokens[0];
+                    let mut path: &str = "";
+                    let mut get_request = "";
+                    let mut post_request = "";
+                    let mut protocol = "";
+                    if tokens.len() > 2 {
+                        path = tokens[1].split('?').collect::<Vec<&str>>()[0];
+                        if path.ends_with('/') && path != "/" {
+                            path = &path[0..path.len() - 1];
+                        }
+                        if tokens[1].split('?').collect::<Vec<&str>>().len() > 1 {
+                            get_request = tokens[1].split('?').collect::<Vec<&str>>()[1];
+                        } else {
+                            get_request = "";
+                        }
+                        protocol = tokens[2];
+                        if method == "POST" {
+                            post_request = tokens[tokens.len() - 1];
+                        }
+                    }
+                    let the_thing_we_need_to_give_to_func = Request {
+                        path,
+                        method,
+                        get_request,
+                        protocol,
+                        post_request,
+                    };
+                    if path.starts_with("/static/") && path != "/static/" && path != "/static" {
+                        let mut file_path = String::from(STATIC_FOLDER);
+                        file_path.push_str(&path[8..]);
+                        // println!("{}", file_path);
 
-                let file_path_cstr = CString::new(file_path).expect("Invalid file path");
-                serve_static_file(new_socket, file_path_cstr.as_ptr());
-                unsafe {
-                    close(new_socket);
+                        let file_path_cstr = CString::new(file_path).expect("Invalid file path");
+                        serve_static_file(new_socket, file_path_cstr.as_ptr());
+                        unsafe {
+                            close(new_socket);
+                        }
+                    } else {
+                        let response = func(the_thing_we_need_to_give_to_func);
+                        unsafe {
+                            send(
+                                new_socket,
+                                response.as_ptr() as *const c_void,
+                                response.len(),
+                                0,
+                            ); // Use the correct length
+                            close(new_socket);
+                        }
+                    }
                 }
-            } else {
-                let response = func(the_thing_we_need_to_give_to_func);
-                unsafe {
-                    send(
-                        new_socket,
-                        response.as_ptr() as *const c_void,
-                        response.len(),
-                        0,
-                    ); // Use the correct length
-                    close(new_socket);
+                Err(_) => {
+                    // If conversion fails, handle the error
+                    let response = String::from("URL format not in utf8 format");
+                    unsafe {
+                        send(
+                            new_socket,
+                            response.as_ptr() as *const c_void,
+                            response.len(),
+                            0,
+                        ); // Use the correct length
+                        close(new_socket);
+                    }
+                    // You may choose to return early, log the error, or take any other appropriate action here.
                 }
             }
         });
@@ -437,7 +486,7 @@ extern "C" {
 /// ```no_run
 /// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, rohanasan};
 ///
-/// fn handle(request: Request) -> &'static str{
+/// fn handle(request: Request) -> String {
 ///     if request.path == "/"{
 ///         send_file(DEFAULT_HTML_HEADER,"./html/index.html")
 ///     }
@@ -451,7 +500,7 @@ extern "C" {
 ///     }
 /// }
 /// ```
-pub fn send_file(header: &str, file_path: &str) -> &'static str {
+pub fn send_file(header: &str, file_path: &str) -> String {
     let mut file = File::open(file_path).expect("Please enter the correct path to your html file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
@@ -469,7 +518,7 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 /// ```no_run
 /// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, rohanasan};
 ///
-/// fn handle(request: Request) -> &'static str{
+/// fn handle(request: Request) -> String {
 ///     if request.path == "/"{
 ///         send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>")
 ///     }
@@ -483,9 +532,9 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
 ///     }
 /// }
 /// ```
-pub fn send_http_response(header: &str, body: &str) -> &'static str {
+pub fn send_http_response(header: &str, body: &str) -> String {
     let thing: String = header.to_string().clone() + body;
-    thing.leak() // I hate leaks, can someone please provide a better way to do this? :)
+    thing
 }
 fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
     let file_path_str = unsafe { CStr::from_ptr(file_path).to_string_lossy() };
@@ -552,17 +601,17 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
 }
 
 // Function to determine content type based on file extension
-fn determine_content_type(file_path: &str) -> &str {
+fn determine_content_type(file_path: &str) -> String {
     match file_path.rsplit('.').next() {
-        Some("css") => "text/css",
-        Some("txt") => "text/plain",
-        Some("js") => "application/javascript",
-        Some("png") => "image/png",
-        Some("jpg") | Some("jpeg") => "image/jpeg",
-        Some("gif") => "image/gif",
-        Some("pdf") => "application/pdf",
-        Some("htm") | Some("html") => "text/html",
-        _ => "application/octet-stream",
+        Some("css") => "text/css".parse().unwrap(),
+        Some("txt") => "text/plain".parse().unwrap(),
+        Some("js") => "application/javascript".parse().unwrap(),
+        Some("png") => "image/png".parse().unwrap(),
+        Some("jpg") | Some("jpeg") => "image/jpeg".parse().unwrap(),
+        Some("gif") => "image/gif".parse().unwrap(),
+        Some("pdf") => "application/pdf".parse().unwrap(),
+        Some("htm") | Some("html") => "text/html".parse().unwrap(),
+        _ => "application/octet-stream".parse().unwrap(),
     }
 }
 
@@ -576,6 +625,6 @@ fn determine_content_type(file_path: &str) -> &str {
 /// ## Explanation:
 /// - Suppose request.get_request() contained: `q=Hello%20world`
 /// - decode will return: `q=Hello world`
-pub fn decode(x: &str) -> &'static str {
-    urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
+pub fn decode(x: &str) -> String {
+    urldecode::decode(x.to_string())
 }
