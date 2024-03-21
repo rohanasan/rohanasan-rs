@@ -8,7 +8,7 @@ fn handle(request: Request) -> &'static str {
         if request.path == "/" {
             send_file(DEFAULT_HTML_HEADER, "./html/index.html")
         } else if request.path == "/static" {
-            send_file(DEFAULT_HTML_HEADER, "./html/index.html")
+            send_file(DEFAULT_HTML_HEADER, "./html/static_index.html")
         } else if request.path == "/req" {
             if decode(request.get_request) == "q=hello world" {
                 send_http_response(DEFAULT_HTML_HEADER, "Hi")
