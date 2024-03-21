@@ -137,6 +137,8 @@ use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
 
+#[cfg(target_os = "linux")]
+use libc::SO_REUSEADDR;
 
 /// # Use this macro to use .await with the serve function
 /// ## Usage:
