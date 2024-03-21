@@ -20,6 +20,79 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+
+/// # Rohanasan: An extremely fast backend framework built for rust
+///
+/// > Made with Performance, optimization and ease of use in mind.
+/// >
+/// > Currently available in C/C++/Rust programming languages only.
+/// >
+/// > Please use a linux/unix/mac kind of os.
+/// >
+/// > This library has been built from scratch.
+/// # How to use in your project?
+/// - Open terminal inside the parent folder where you would like to create the folder of your project
+/// - Run:
+/// ```shell
+/// cargo new myproj
+/// cd myproj
+/// cargo add rohanasan
+/// ```
+/// - For a start you can add this to main.rs:
+///
+/// ```rust
+/// use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
+///
+/// fn handle(request:Request) -> &'static str{
+///     if request.path == "/" {
+///         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
+///     }
+///     else{
+///         send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
+///     }
+/// }
+///
+/// fn main() {
+///     println!("Listening at http://localhost:8080");
+///     rohanasan!{
+///         serve(init(8080), handle).await;
+///     }
+/// }
+/// ```
+/// - `cargo run` to run your project.
+/// - Go to: `localhost:8080`.
+/// - Enjoy using Rohanasan!
+///
+/// # How to run the example?
+/// ```shell
+/// git clone https://github.com/rohanasan/rohanasan-rs.git
+/// cd rohanasan-rs
+/// cd examples
+/// cargo run --example example
+/// ```
+///
+/// ## Discord server link:
+/// https://discord.gg/Yg2A3mEret
+///
+/// ### Current Features:
+/// - Can run a server at a specified port
+/// - Can serve a folder named static at /static
+/// - Can send files as http response
+/// - Can give you the path, method and protocol
+/// ### TODO:
+/// - Add feature to change the directory path of the public folder ☑️ Done!!!!
+/// - Asynchronous file request handling ☑️ Done!!!!
+/// - Add feature to give the user an option to add index.html to static folder ☑️ Done!!!! you can send ./html/static_index.html
+/// - Add statistics of performance.
+/// - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
+///
+/// ### Contribute:
+/// https://www.buymeacoffee.com/rohanvashisht
+///
+/// Please star rohanasan's github repo:
+///
+/// https://github.com/rohanasan/rohanasan-rs
+
 pub use async_std::task::block_on;
 use libc::{
     accept, bind, c_char, c_int, c_void, close, in_addr, listen, recv, sa_family_t, send,
@@ -255,12 +328,12 @@ where
             let mut post_request = "";
             let mut protocol = "";
             if tokens.len() > 2 {
-                path = tokens[1].split("?").collect::<Vec<&str>>()[0];
-                if path.ends_with("/") && path != "/" {
+                path = tokens[1].split('?').collect::<Vec<&str>>()[0];
+                if path.ends_with('/') && path != "/" {
                     path = &path[0..path.len() - 1];
                 }
-                if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
-                    get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
+                if tokens[1].split('?').collect::<Vec<&str>>().len() > 1 {
+                    get_request = tokens[1].split('?').collect::<Vec<&str>>()[1];
                 } else {
                     get_request = "";
                 }
@@ -335,7 +408,7 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("File can't be read!");
-    send_http_response(header, &*contents)
+    send_http_response(header, &contents)
 }
 
 /// Use this function to send an HTTP response.
