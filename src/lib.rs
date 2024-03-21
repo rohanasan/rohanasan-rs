@@ -21,77 +21,78 @@
 // SOFTWARE.
 
 
-/// # Rohanasan: An extremely fast backend framework built for rust
-///
-/// > Made with Performance, optimization and ease of use in mind.
-/// >
-/// > Currently available in C/C++/Rust programming languages only.
-/// >
-/// > Please use a linux/unix/mac kind of os.
-/// >
-/// > This library has been built from scratch.
-/// # How to use in your project?
-/// - Open terminal inside the parent folder where you would like to create the folder of your project
-/// - Run:
-/// ```shell
-/// cargo new myproj
-/// cd myproj
-/// cargo add rohanasan
-/// ```
-/// - For a start you can add this to main.rs:
-///
-/// ```rust
-/// use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
-///
-/// fn handle(request:Request) -> &'static str{
-///     if request.path == "/" {
-///         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
-///     }
-///     else{
-///         send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
-///     }
-/// }
-///
-/// fn main() {
-///     println!("Listening at http://localhost:8080");
-///     rohanasan!{
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-/// - `cargo run` to run your project.
-/// - Go to: `localhost:8080`.
-/// - Enjoy using Rohanasan!
-///
-/// # How to run the example?
-/// ```shell
-/// git clone https://github.com/rohanasan/rohanasan-rs.git
-/// cd rohanasan-rs
-/// cd examples
-/// cargo run --example example
-/// ```
-///
-/// ## Discord server link:
-/// https://discord.gg/Yg2A3mEret
-///
-/// ### Current Features:
-/// - Can run a server at a specified port
-/// - Can serve a folder named static at /static
-/// - Can send files as http response
-/// - Can give you the path, method and protocol
-/// ### TODO:
-/// - Add feature to change the directory path of the public folder ☑️ Done!!!!
-/// - Asynchronous file request handling ☑️ Done!!!!
-/// - Add feature to give the user an option to add index.html to static folder ☑️ Done!!!! you can send ./html/static_index.html
-/// - Add statistics of performance.
-/// - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
-///
-/// ### Contribute:
-/// https://www.buymeacoffee.com/rohanvashisht
-///
-/// Please star rohanasan's github repo:
-///
-/// https://github.com/rohanasan/rohanasan-rs
+//! # Rohanasan: An extremely fast backend framework built for rust
+//!
+//! - Made with Performance, optimization and ease of use in mind.
+//!
+//! - Currently available in C/C++/Rust programming languages only.
+//!
+//! - Please use a linux/unix/mac kind of os.
+//!
+//! - This library has been built from scratch.
+//!
+//! # How to use in your project?
+//! - Open terminal inside the parent folder where you would like to create the folder of your project
+//! - Run:
+//! ```shell
+//! cargo new myproj
+//! cd myproj
+//! cargo add rohanasan
+//! ```
+//! - For a start you can add this to main.rs:
+//!
+//! ```no_run
+//! use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
+//!
+//! fn handle(request:Request) -> &'static str{
+//!     if request.path == "/" {
+//!         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
+//!     }
+//!     else{
+//!         send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
+//!     }
+//! }
+//!
+//! fn main() {
+//!     println!("Listening at http://localhost:8080");
+//!     rohanasan!{
+//!         serve(init(8080), handle).await;
+//!     }
+//! }
+//! ```
+//! - `cargo run` to run your project.
+//! - Go to: `localhost:8080`.
+//! - Enjoy using Rohanasan!
+//!
+//! # How to run the example?
+//! ```shell
+//! git clone https://github.com/rohanasan/rohanasan-rs.git
+//! cd rohanasan-rs
+//! cd examples
+//! cargo run --example example
+//! ```
+//!
+//! ## Discord server link:
+//! https://discord.gg/Yg2A3mEret
+//!
+//! ### Current Features:
+//! - Can run a server at a specified port
+//! - Can serve a folder named static at /static
+//! - Can send files as http response
+//! - Can give you the path, method and protocol
+//! ### TODO:
+//! - Add feature to change the directory path of the public folder ☑️ Done!!!!
+//! - Asynchronous file request handling ☑️ Done!!!!
+//! - Add feature to give the user an option to add index.html to static folder ☑️ Done!!!! you can send ./html/static_index.html
+//! - Add statistics of performance.
+//! - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
+//!
+//! ### Contribute:
+//! https://www.buymeacoffee.com/rohanvashisht
+//!
+//! Please star rohanasan's github repo:
+//!
+//! https://github.com/rohanasan/rohanasan-rs
 
 pub use async_std::task::block_on;
 use libc::{
@@ -104,7 +105,32 @@ use std::fs::File;
 use std::io::Read;
 use std::mem::size_of;
 
-// Define the custom async_main macro.
+
+/// # Use this macro to use .await with the serve function
+/// ## Usage:
+/// ```usage
+/// rohanasan! {
+///      serve(init(8080), handle).await;
+/// }
+/// ```
+/// ## Example:
+/// ```rust
+/// use rohanasan::{init, Request, serve, rohanasan};
+///
+/// fn handle(request: Request) -> &'static str{
+///     "Hello!"
+/// }
+///
+/// fn main() {
+///     rohanasan! {
+///         serve(init(8080), handle).await;
+///     }
+/// }
+/// ```
+/// **This is basically a wrapper for `async_std::task::block_on(async{/* your content here */})`**
+///
+/// ## Important:
+/// There is no need to import async_std in your rohanasan project.
 #[macro_export]
 macro_rules! rohanasan {
     // Define the macro pattern.
@@ -148,13 +174,13 @@ pub const DEFAULT_401_HEADER: &str = "HTTP/1.1 401 Unauthorized\nContent-Type: t
 /// This is the default 402 payment required errors' header.
 pub const DEFAULT_402_HEADER: &str = "HTTP/1.1 402 Payment Required\nContent-Type: text/html\n\n";
 
-/// Take this as a parameter in your handle function
-/// This contains 5 things:
-/// 1) path: This contains the path that the person requested like /hello or /something.
-/// 2) method: This contains the method used to send the request like: GET or POST.
-/// 3) get_request: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
-/// 4) protocol: This contains the protocol used to make the HTTP request like:
-/// 5) post_request: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
+/// ### Take this as a parameter in your handle function
+/// **This contains 5 things:**
+/// 1) `path`: This contains the path that the person requested like /hello or /something.
+/// 2) `method`: This contains the method used to send the request like: GET or POST.
+/// 3) `get_request`: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
+/// 4) `protocol`: This contains the protocol used to make the HTTP request like:
+/// 5) `post_request`: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
 pub struct Request {
     /// path: This contains the path that the person requested like /hello or /something.
     pub path: &'static str,
@@ -168,9 +194,15 @@ pub struct Request {
     pub post_request: &'static str,
 }
 
-/// Use this function to initialize rohanasan backend framework.
-/// Provide this a port datatype: `u16`,
-/// use this like this:
+/// # Use this function to initialize rohanasan backend framework.
+/// **Provide this a port datatype: `u16`,**
+/// ## Usage:
+/// ```usage
+/// rohanasan! {
+///      serve(init(8080), handle).await;
+/// }
+/// ```
+/// ## Example:
 /// ```rust
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
@@ -184,7 +216,6 @@ pub struct Request {
 ///     }
 /// }
 /// ```
-
 #[cfg(not(target_os = "linux"))]
 pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     let opt: c_int = 1;
@@ -216,10 +247,16 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     (server_fd, address, addrlen)
 }
 
-/// Use this function to initialize rohanasan backend framework.
-/// Provide this a port datatype: `u16`,
-/// use this like this:
-/// ```rust
+/// # Use this function to initialize rohanasan backend framework.
+/// **Provide this a port datatype: `u16`,**
+/// ## Usage:
+/// ```ignore
+/// rohanasan! {
+///      serve(init(8080), handle).await;
+/// }
+/// ```
+/// ## Example:
+/// ```no_run
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
@@ -262,10 +299,16 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
     (server_fd, address, addrlen)
 }
 
-/// Use this function to serve the initialized port according to handle.
-/// Provide this the value returned by serve function and a handle function as well,
-/// use it like this:
-/// ```rust
+/// # Use this function to serve the initialized port according to handle.
+/// **Provide this the value returned by the init function and a handle function as well.**
+/// ## Usage:
+/// ```ignore
+/// rohanasan! {
+///     serve(init(8080), handle).await;
+/// }
+/// ```
+/// ## Example:
+/// ```no_run
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
@@ -375,6 +418,7 @@ where
     }
 }
 
+/// This is the default buffer size used in rohanasan's development majorly.
 pub const BUFFER_SIZE: usize = 1024;
 
 // Function to serve static files
@@ -383,10 +427,14 @@ extern "C" {
     fn htons(p0: u16) -> u16;
 }
 
-/// Use this function to send a file.
-/// Provide this a header and a file path.
-/// use it like this:
-/// ```rust
+/// # Use this function to send a file.
+/// **Provide this a header and a path to a html file.**
+/// ## Usage:
+/// ```ignore
+/// send_file(DEFAULT_HTML_HEADER,"./html/index.html")
+/// ```
+/// ## Example:
+/// ```no_run
 /// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
@@ -411,10 +459,14 @@ pub fn send_file(header: &str, file_path: &str) -> &'static str {
     send_http_response(header, &contents)
 }
 
-/// Use this function to send an HTTP response.
-/// Provide this a header and a body.
-/// use it like this:
-/// ```rust
+/// # Use this function to send an HTTP response.
+/// **Provide this function header:&str and a body:&str.**
+/// ## Usage:
+/// ```ignore
+/// send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>")
+/// ```
+/// ## Example:
+/// ```no_run
 /// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, rohanasan};
 ///
 /// fn handle(request: Request) -> &'static str{
@@ -514,8 +566,16 @@ fn determine_content_type(file_path: &str) -> &str {
     }
 }
 
-/// url decode wrapper
-/// crate used: url decode, but have made the wrapper suit rohanasan's needs
+/// # Url Decode crate wrapper
+/// **Crate used**: url decode, but have made the wrapper which suits rohanasan's needs.
+///
+/// ## Usage:
+/// ```ignore
+/// decode(request.get_request())
+/// ```
+/// ## Explanation:
+/// - Suppose request.get_request() contained: `q=Hello%20world`
+/// - decode will return: `q=Hello world`
 pub fn decode(x: &str) -> &'static str {
     urldecode::decode(x.to_string()).leak() // Leaks AGAIN!!! I HATE LEAKS! please someone tell me a better alternative to leaks :)
 }
