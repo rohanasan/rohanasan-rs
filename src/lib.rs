@@ -93,8 +93,9 @@
 //! Please star rohanasan's github repo:
 //!
 //! [https://github.com/rohanasan/rohanasan-rs](https://github.com/rohanasan/rohanasan-rs)
-//! # Example
-//! ## Hello world (Html):
+//!
+//! # Examples
+//! - **Hello world (Html):**
 //! > Basic Html implementation of hello world:
 //! ```no_run
 //! use rohanasan::{rohanasan, serve, init, Request, send_http_response, DEFAULT_HTML_HEADER};
@@ -109,7 +110,7 @@
 //!     }
 //! }
 //! ```
-//! ## Hello world (Html File):
+//! - **Hello world (Html File):**
 //! > Basic Html implementation of hello world:
 //! ```no_run
 //! use rohanasan::{rohanasan, serve, init, Request, send_file, DEFAULT_HTML_HEADER};
@@ -126,7 +127,7 @@
 //! ```
 //! # Points to remember:
 //! - There is no need to import async_std for using rohanasan macro.
-//! - There is no need to import url-decode for using decode funciton
+//! - There is no need to import url-decode for using decode function.
 //! - By default rohanasan serves any folder named static present in the same directory where you are running the server.
 
 pub use async_std::task::block_on;
@@ -238,7 +239,7 @@ pub struct Request {
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> String {
-///     "Hello!".parse().unwrap()
+///     String::from("Hello!")
 /// }
 ///
 /// fn main() {
@@ -291,7 +292,7 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> String {
-///     "Hello!".parse().unwrap()
+///     String::from("Hello!")
 /// }
 ///
 /// fn main() {
@@ -343,7 +344,7 @@ pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
 /// use rohanasan::{init, Request, serve, rohanasan};
 ///
 /// fn handle(request: Request) -> String {
-///     "Hello!".parse().unwrap()
+///     String::from("Hello!")
 /// }
 ///
 /// fn main() {
@@ -383,7 +384,7 @@ where
             continue;
         }
         async_std::task::spawn(async move {
-            let mut buf: [c_char; BUFFER_SIZE] = [0; BUFFER_SIZE]; // Allocate buffer
+            let mut buf: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE]; // Allocate buffer
 
             unsafe {
                 recv(
@@ -392,12 +393,12 @@ where
                     BUFFER_SIZE - 1,
                     0,
                 );
-                puts(buf.as_ptr());
+                puts(&buf as *const _ as *const c_char);
             }
-            let mut x = String::from_utf8(buf.iter().map(|i| *i as u8).collect::<Vec<u8>>());
-            match x {
-                Ok(x) => {
-                    let tokens = x.leak().split_whitespace().collect::<Vec<&str>>();
+            let rust_buffer = String::from_utf8(Vec::from(buf));
+            match rust_buffer {
+                Ok(rust_buffer) => {
+                    let tokens = rust_buffer.leak().split_whitespace().collect::<Vec<&str>>();
                     let method = tokens[0];
                     let mut path: &str = "";
                     let mut get_request = "";
@@ -603,15 +604,15 @@ fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
 // Function to determine content type based on file extension
 fn determine_content_type(file_path: &str) -> String {
     match file_path.rsplit('.').next() {
-        Some("css") => "text/css".parse().unwrap(),
-        Some("txt") => "text/plain".parse().unwrap(),
-        Some("js") => "application/javascript".parse().unwrap(),
-        Some("png") => "image/png".parse().unwrap(),
-        Some("jpg") | Some("jpeg") => "image/jpeg".parse().unwrap(),
-        Some("gif") => "image/gif".parse().unwrap(),
-        Some("pdf") => "application/pdf".parse().unwrap(),
-        Some("htm") | Some("html") => "text/html".parse().unwrap(),
-        _ => "application/octet-stream".parse().unwrap(),
+        Some("css") => String::from("text/css"),
+        Some("txt") => String::from("text/plain"),
+        Some("js") => String::from("application/javascript"),
+        Some("png") => String::from("image/png"),
+        Some("jpg") | Some("jpeg") => String::from("image/jpeg"),
+        Some("gif") => String::from("image/gif"),
+        Some("pdf") => String::from("application/pdf"),
+        Some("htm") | Some("html") => String::from("text/html"),
+        _ => String::from("application/octet-stream"),
     }
 }
 

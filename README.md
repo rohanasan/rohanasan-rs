@@ -18,24 +18,19 @@ cargo add rohanasan
 - For a start you can add this to main.rs:
 
 ```rust
-use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
+use rohanasan::{rohanasan, serve, init, Request, send_http_response, DEFAULT_HTML_HEADER};
 
-fn handle(request:Request) -> &'static str{
-    if request.path == "/" {
-        send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
-    }
-    else{
-        send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
-    }
+fn handle(request: Request) -> String {
+    send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello, World</h1>")
 }
 
 fn main() {
-    println!("Listening at http://localhost:8080");
     rohanasan!{
         serve(init(8080), handle).await;
     }
 }
 ```
+
 - `cargo run` to run your project.
 - Go to: `localhost:8080`.
 - Enjoy using Rohanasan!
