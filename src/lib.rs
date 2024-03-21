@@ -256,6 +256,9 @@ where
             let mut protocol = "";
             if tokens.len() > 2 {
                 path = tokens[1].split("?").collect::<Vec<&str>>()[0];
+                if path.ends_with("/") && path != "/" {
+                    path = &path[0..path.len() - 1];
+                }
                 if tokens[1].split("?").collect::<Vec<&str>>().len() > 1 {
                     get_request = tokens[1].split("?").collect::<Vec<&str>>()[1];
                 } else {
