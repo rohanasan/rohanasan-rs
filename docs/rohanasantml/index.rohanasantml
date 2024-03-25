@@ -1,0 +1,296 @@
+// I am using rohanasantml for this project
+// more info at: https://github.com/rohanasan/rohanasantml
+html
+
+head
+    title
+        {Rohanasan: An Extremely fast backend framework}
+    title end
+    meta name="viewport" content="width=device-width" end
+    link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" end
+    link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css" end
+head end
+
+body
+    p class="bg-yellow-400 text-center"
+        {Website under construction}
+    p end
+    nav class="bg-white border-gray-200 dark:bg-gray-900"
+        div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4"
+            a href="/" class="flex items-center space-x-3 rtl:space-x-reverse"
+                img src="/static/rohanasan.png" class="h-8" alt="Rohanasan logo" end
+                span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white"
+                    {Rohanasan}
+                span end
+            a end
+            button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false"
+                span class="sr-only"
+                    {Open main menu}
+                span end
+                svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14"
+                    path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15" end
+                svg end
+            button end
+            div class="hidden w-full md:block md:w-auto" id="navbar-default"
+                ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700"
+                    li
+                        a href="#" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500" aria-current="page"
+                            {Home}
+                        a end
+                    li end
+                    li
+                        a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                            {About}
+                        a end
+                    li end
+                    li
+                        a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                        {Services}
+                        a end
+                    li end
+                    li
+                        a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                            {Pricing}
+                        a end
+                    li end
+                    li
+                        a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                            {Contact}
+                        a end
+                    li end
+                ul end
+            div end
+        div end
+    nav end
+
+    // The hero section
+    section class="bg-white dark:bg-gray-900"
+        // Show alert that this website is currently being built
+        div class="pt-5 px-4 mx-auto max-w-screen-xl text-center"
+            a href="#" class="inline-flex justify-between items-center py-1 px-1 pe-4 mb-7 text-sm text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800"
+                span class="text-xs bg-blue-600 rounded-full text-white px-4 py-1.5 me-3">New</span> <span class="text-sm font-medium"
+                    {Jumbotron component was launched! See what's new}
+                span end
+                svg class="w-2.5 h-2.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10"
+                    path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" end
+                svg end
+            a end
+        div end
+        div class="px-4 mx-auto max-w-screen-xl grid lg:grid-cols-2 gap-8 lg:gap-16"
+            div class="flex flex-col justify-center"
+                h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+                    {Rohanasan: An extremely fast backend framework}
+                h1 end
+                p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400"
+                    {Here at Rohanasan we focus on extreme optimization, performance and ease of use.}
+                p end
+                div class="flex flex-col space-y-4 sm:flex-row sm:space-y-0"
+                    a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+                        {Get started}
+                        svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"
+                            path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" end
+                        svg end
+                    a end
+                    a href="#" class="py-3 px-5 sm:ms-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        {Learn more}
+                    a end
+                div end
+            div end
+            div
+                iframe class="mx-auto w-full lg:max-w-xl h-64 rounded-lg sm:h-96 shadow-xl" src="https://www.youtube.com/embed/Y3TJQ_E0TGA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                iframe end
+            div end
+        div end
+    section end
+
+
+
+
+    section class="bg-white dark:bg-gray-900"
+        div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16"
+            div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 md:p-12 mb-8"
+                a href="#" class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-blue-400 mb-2"
+                    svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 14"
+                        path d="M11 0H2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm8.585 1.189a.994.994 0 0 0-.9-.138l-2.965.983a1 1 0 0 0-.685.949v8a1 1 0 0 0 .675.946l2.965 1.02a1.013 1.013 0 0 0 1.032-.242A1 1 0 0 0 20 12V2a1 1 0 0 0-.415-.811Z" end
+                    svg end
+                    {Tutorial}
+                a end
+                h1 class="text-gray-900 dark:text-white text-3xl md:text-5xl font-extrabold mb-2"
+                    {Simple hello world program:}
+                h1 end
+                p class="text-lg font-normal text-gray-500 dark:text-gray-400 mb-6"
+                    {This is a basic hello world implementation in Rohanasan backend framework (C/C++)}
+                p end
+                pre
+                code class="language-rust"
+                    {use rohanasan::{}
+                    {    rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,}
+                    {};}
+                    {fn handle(req: Request) -> String {}
+                    {    send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)}
+                    {}}
+                    {}
+                    {fn main() {}
+                    {    rohanasan! {}
+                    {        serve(8080, handle)}
+                    {    }}
+                    {}}
+                code end
+                pre end
+                a href="#" class="inline-flex justify-center items-center py-2.5 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+                    {Read more}
+                    svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"
+                        path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" end
+                    svg end
+                a end
+            div end
+            div class="grid md:grid-cols-2 gap-8"
+                div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 md:p-12"
+                    a href="#" class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-green-400 mb-2"
+                        svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18"
+                            path d="M17 11h-2.722L8 17.278a5.512 5.512 0 0 1-.9.722H17a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1ZM6 0H1a1 1 0 0 0-1 1v13.5a3.5 3.5 0 1 0 7 0V1a1 1 0 0 0-1-1ZM3.5 15.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2ZM16.132 4.9 12.6 1.368a1 1 0 0 0-1.414 0L9 3.55v9.9l7.132-7.132a1 1 0 0 0 0-1.418Z" end
+                        svg end
+                        {Design}
+                    a end
+                    h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2"
+                        {Solve Complex problems with ease:}
+                    h2 end
+                    p class="text-lg font-normal text-gray-500 dark:text-gray-400 mb-4"
+                        {An example to send a html file named index.html present inside html folder. It also checks if the request made was a get request or a post request if, the path is / it returns an index.html persent inside ./html directory. }
+                    p end
+                    pre
+                    code class="language-rust"
+                        {use rohanasan::{}
+                        {    rohanasan, send_file, send_http_response, serve, url_decode, Request, DEFAULT_HTML_HEADER,}
+                        {};}
+                        {fn handle(req: Request) -> String {}
+                        {    if req.path == "/" {}
+                        {        send_file(DEFAULT_HTML_HEADER, "./html/hello.html", req.data)}
+                        {    } else if req.path == "/hello" {}
+                        {        send_http_response(DEFAULT_HTML_HEADER, "<h1>Hi, How are you?</h1>", req.data)}
+                        {    } else if req.path == "/req" {}
+                        {        if url_decode(req.get_request) == "q=hello world" {}
+                        {            send_http_response(DEFAULT_HTML_HEADER, "<h1>Hi world!</h1>", req.data)}
+                        {        } else {}
+                        {            send_http_response(DEFAULT_HTML_HEADER, "<h1>World?</h1>", req.data)}
+                        {        }}
+                        {    } else {}
+                        {        send_file(DEFAULT_HTML_HEADER, "./html/404.html", req.data)}
+                        {    }}
+                        {}}
+                        {}
+                        {fn main() {}
+                        {    rohanasan! {}
+                        {        serve(8080, handle)}
+                        {    }}
+                        {}}
+                    code end
+                    pre end
+                    a href="#" class="text-blue-600 dark:text-blue-500 hover:underline font-medium text-lg inline-flex items-center"
+                        {Read more}
+                        svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"
+                        path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" end
+                    svg end
+                    a end
+                div end
+                div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 md:p-12"
+                    a href="#" class="bg-purple-100 text-purple-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-purple-400 mb-2"
+                        svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"
+                            path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4 1 8l4 4m10-8 4 4-4 4M11 1 9 15" end
+                        svg end
+                        {Code}
+                    a end
+                    h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2"
+                        {How to create your own project?}
+                    h2 end
+                    p class="text-lg font-normal text-gray-500 dark:text-gray-400 mb-4"
+                        {Just follow the following steps:}
+                    p end
+                    ol
+                        li class="text-white font-semibold font-xl"
+                            {Open terminal on your linux&#47;mac&#47;unix&#47;FreeBSD and run the following command:}
+                        li end
+
+                        br none end
+                        pre
+                        code class="language-bash"
+                            {curl https://raw.githubusercontent.com/rohanasan/rohanasan_c/main/project_maker.c -o project_maker.c}
+                            {gcc ./project_maker.c}
+                            {./a.out}
+                            {rm ./project_maker.c}
+                            {rm ./a.out}
+                        pre end
+                        code end
+                        br none end
+                        li class="text-white font-semibold"
+                            {The menu driven program will ask you for a few configurations.}
+                        li end
+                        li class="text-white font-semibold"
+                            {Configure them as you want!}
+                        li end
+                        li class="text-white font-semibold"
+                            {Cd into your directory and enjoy using Rohanasan!!!}
+                        li end
+                        li class="text-yellow-400 font-semibold"
+                            {Having doubts? join:}
+                            iframe src="https://discord.com/widget?id=1217035966221651998&theme=dark" width="350" height="150" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                            iframe end
+                        li end
+                    ol end
+
+                    a href="#" class="text-blue-600 dark:text-blue-500 hover:underline font-medium text-lg inline-flex items-center"
+                        {Read more}
+                        svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"
+                            path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" end
+                        svg end
+                    a end
+                div end
+            div end
+        div end
+    section end
+
+
+
+
+    section class="bg-white dark:bg-gray-900"
+        div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16"
+            h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+                {Sponsors:}
+            h1 end
+            p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48 dark:text-gray-400"
+                {Be the first one to sponsor:}
+            p end
+            div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0"
+                a href="https://buymeacoffee.com/rohanvashisht" target="_blank" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
+                    {Sponsor}
+                    svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"
+                        path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" end
+                    svg end
+                a end
+            div end
+        div end
+    section end
+
+
+
+    script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"
+    script end
+
+    script src="./js/index.js"
+    script end
+
+    script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"
+    script end
+
+    script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/rust.min.js"
+    script end
+
+    script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/bash.min.js"
+    script end
+
+    script
+        {hljs.highlightAll();}
+    script end
+body end
+
+html end
