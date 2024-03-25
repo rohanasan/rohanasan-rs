@@ -20,46 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
 //! # Rohanasan: An extremely fast backend framework built for rust
 //!
-//! - Made with Performance, optimization and ease of use in mind.
-//!
-//! - Currently available in C/C++/Rust programming languages only.
-//!
-//! - Please use a linux/unix/mac kind of os.
-//!
-//! - This library has been built from scratch.
-//!
+//! > Made with Performance, optimization and ease of use in mind.
+//! >
+//! > Currently available in C/C++/Rust programming languages only.
+//! >
+//! > This library has been built from scratch using tokio.
 //! # How to use in your project?
 //! - Open terminal inside the parent folder where you would like to create the folder of your project
 //! - Run:
 //! ```shell
-//! cargo new myproj
-//! cd myproj
-//! cargo add rohanasan
+//! cargo install rohanasanpm
+//! rohanasanpm new my_proj
 //! ```
-//! - For a start you can add this to main.rs:
-//!
-//! ```no_run
-//! use rohanasan::{init, send_http_response, serve, Request, DEFAULT_HTML_HEADER, ERROR_404_HEADER, rohanasan};
-//!
-//! fn handle(request:Request) -> String {
-//!     if request.path == "/" {
-//!         send_http_response(DEFAULT_HTML_HEADER, "<h1>Thanks for choosing Rohanasan-rs!</h1>")
-//!     }
-//!     else{
-//!         send_http_response(ERROR_404_HEADER, "<h1>404!</h1>")
-//!     }
-//! }
-//!
-//! fn main() {
-//!     println!("Listening at http://localhost:8080");
-//!     rohanasan!{
-//!         serve(init(8080), handle).await;
-//!     }
-//! }
-//! ```
+//! - `cd` into my_proj
 //! - `cargo run` to run your project.
 //! - Go to: `localhost:8080`.
 //! - Enjoy using Rohanasan!
@@ -69,11 +44,49 @@
 //! git clone https://github.com/rohanasan/rohanasan-rs.git
 //! cd rohanasan-rs
 //! cd examples
-//! cargo run --example example
+//! cargo run --example standard
 //! ```
 //!
 //! ## Discord server link:
 //! [https://discord.gg/Yg2A3mEret](https://discord.gg/Yg2A3mEret)
+//!
+//! ## Performance:
+//! ### Machine Specs:
+//! <span style="color: yellow;">OS:</span> Garuda Linux x86_64
+//!
+//! <span style="color: yellow;">Laptop:</span> Dell Inspiron 5590
+//!
+//! <span style="color: yellow;">Kernel:</span> 6.8.1-zen1-1-zen
+//!
+//! <span style="color: yellow;">Mode:</span> GUI mode (terminal was running like a window)
+//!
+//! <span style="color: yellow;">Shell:</span> fish 3.7.0
+//!
+//! <span style="color: yellow;">Terminal:</span> konsole 24.2.1
+//!
+//! <span style="color: yellow;">CPU:</span> Intel(R) Core(TM) i3-10110U (4) @ 4.10 GHz
+//!
+//! <span style="color: yellow;">GPU:</span> Intel UHD Graphics (The CPU itself)
+//!
+//!
+//! <span style="color: yellow;">Memory:</span> 11.47 GiB
+//!
+//!
+//! <span style="color: yellow;">Command used to run test:</span> wrk -t 2 -c 100 http://localhost:8080
+//!
+//! ### Results:
+//! | Thread Stats | Avg      | Stdev    | Max    | +/- Stdev |
+//! |--------------|----------|----------|--------|-----------|
+//! | Latency      | 844.10us | 480.14us | 4.14ms | 64.85%    |
+//! | Req/Sec      | 26.24k   | 831.40   | 28.10k | 70.00%    |
+//!
+//! <span style="color: yellow;">Output:</span> 522523 requests in 10.02s, 46.84MB read
+//!
+//! <span style="color: yellow;">Requests/sec:</span> 52142.29
+//!
+//! <span style="color: yellow;">Transfer/sec:</span> 4.67MB
+//!
+//! <span style="color: yellow;">Program that was run: </span> examples/hello_world.rs
 //!
 //! ### Current Features:
 //! - Can run a server at a specified port
@@ -83,527 +96,402 @@
 //! ### TODO:
 //! - Add feature to change the directory path of the public folder ☑️ Done!!!!
 //! - Asynchronous file request handling ☑️ Done!!!!
-//! - Add feature to give the user an option to add index.html to static folder ☑️ Done!!!! you can send ./html/static_index.html
-//! - Add statistics of performance.
+//! - Add feature to give the user an option to add index.html to static folder ☑️ Done!!!!
+//! - Add feature of `request.post_request()`
 //! - Add feature to... currently it's just a pre alpha release I have to add a lot of features right now!
 //!
 //! ### Contribute:
+//! - Please support rohanasan:
 //! [https://www.buymeacoffee.com/rohanvashisht](https://www.buymeacoffee.com/rohanvashisht)
 //!
-//! Please star rohanasan's github repo:
-//!
+//! - Please star rohanasan's github repo:
 //! [https://github.com/rohanasan/rohanasan-rs](https://github.com/rohanasan/rohanasan-rs)
 //!
 //! # Examples
 //! - **Hello world (Html):**
 //! > Basic Html implementation of hello world:
 //! ```no_run
-//! use rohanasan::{rohanasan, serve, init, Request, send_http_response, DEFAULT_HTML_HEADER};
-//!
-//! fn handle(request: Request) -> String {
-//!     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello, World</h1>")
+//! use rohanasan::{
+//!     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
+//! };
+//! fn handle(req: Request) -> String {
+//!     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
 //! }
 //!
 //! fn main() {
-//!     rohanasan!{
-//!         serve(init(8080), handle).await;
+//!     rohanasan! {
+//!         serve(8080, handle)
 //!     }
 //! }
 //! ```
 //! - **Hello world (Html File):**
 //! > Basic Html implementation of hello world:
 //! ```no_run
-//! use rohanasan::{rohanasan, serve, init, Request, send_file, DEFAULT_HTML_HEADER};
-//!
-//! fn handle(request: Request) -> String {
-//!     send_file(DEFAULT_HTML_HEADER, "./html/index.html")
+//! use rohanasan::{
+//!     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,
+//! };
+//! fn handle(req: Request) -> String {
+//!     send_file(DEFAULT_HTML_HEADER, "./html/index.html", req.data)
 //! }
 //!
 //! fn main() {
-//!     rohanasan!{
-//!         serve(init(8080), handle).await;
+//!     rohanasan! {
+//!         serve(8080, handle)
 //!     }
 //! }
 //! ```
-//! # Points to remember:
-//! - There is no need to import async_std for using rohanasan macro.
-//! - There is no need to import url-decode for using decode function.
-//! - By default rohanasan serves any folder named static present in the same directory where you are running the server.
+//! ## Points to remember:
+//! - There is no need to import tokio for using rohanasan macro.
+//! - By default, rohanasan serves any folder named static present in the same directory where you are running the server.
 
-pub use async_std::task::block_on;
-use libc::{accept, bind, c_char, c_int, c_void, close, in_addr, listen, recv, sa_family_t, send, setsockopt, sockaddr, sockaddr_in, socket, socklen_t, AF_INET, INADDR_ANY, SOCK_STREAM, SOL_SOCKET, SO_REUSEPORT, puts};
-use std::ffi::{CStr, CString};
+
+use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::mem::size_of;
+use std::net::SocketAddr;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+pub use tokio::runtime::Builder;
 
-#[cfg(target_os = "linux")]
-use libc::SO_REUSEADDR;
-
-/// # Use this macro to use .await with the serve function
+/// # Rohanasan macro
+/// **This is the macro inside which you need to declare the serve function.**
 /// ## Usage:
-/// ```usage
-/// rohanasan! {
-///      serve(init(8080), handle).await;
-/// }
-/// ```
-/// ## Example:
-/// ```rust
-/// use rohanasan::{init, Request, serve, rohanasan, send_http_response, DEFAULT_HTML_HEADER};
-///
-/// fn handle(request: Request) -> String {
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello world!</h1>")
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
+/// };
+/// fn handle(req: Request) -> String {
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
 /// }
 ///
 /// fn main() {
 ///     rohanasan! {
-///         serve(init(8080), handle).await;
+///         serve(8080, handle)
 ///     }
 /// }
 /// ```
-/// **This is basically a wrapper for `async_std::task::block_on(async{/* your content here */})`**
-///
-/// ## Important:
-/// There is no need to import async_std in your rohanasan project.
+/// > Place 'only' the serve function inside the rohanasan macro without a semicolon.
 #[macro_export]
 macro_rules! rohanasan {
     // Define the macro pattern.
     ($($body:tt)*) => {
-        use $crate::block_on as why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da;
-        // Use async-std task spawning to run the asynchronous block provided.
-        why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da(async {
+        use $crate::Builder as why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da;
+        why_will_someone_use_this_as_a_name_to_import_task_32194ilqrjf8da::new_multi_thread().enable_all()
+        .build()
+        .unwrap()
+        .block_on(
             $($body)*
-        });
+        )
     };
 }
 
-const STATIC_FOLDER: &str = "./static/";
 /// This is the Default Html Header.
-pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n";
+pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html";
 
 /// This is the Default Json Header.
-pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: application/json\n\n";
+pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: application/json";
 
 /// This is the Default 403 error header
-pub const ERROR_403_HEADER: &str = "HTTP/1.1 403 Forbidden\nContent-Type: text/html\n\n";
+pub const ERROR_403_HEADER: &str = "HTTP/1.1 403 Forbidden\nContent-Type: text/html";
 
 /// This is the Default Plain Texts' Header
-pub const DEFAULT_PLAIN_TEXT_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/plain\n\n";
+pub const DEFAULT_PLAIN_TEXT_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/plain";
 
 /// This is the Default 500 errors' header
-pub const DEFAULT_500_HEADER: &str = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\n\n";
+pub const DEFAULT_500_HEADER: &str = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html";
 
 /// This is the Default 404 errors' Header.
-pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n";
+pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html";
 
 /// This is the default 301 permanently moved error's header.
-pub const DEFAULT_301_HEADER: &str = "HTTP/1.1 301 Moved Permanently\nContent-Type: text/html\n\n";
+pub const DEFAULT_301_HEADER: &str = "HTTP/1.1 301 Moved Permanently\nContent-Type: text/html";
 
 /// This is the default 400 errors' header.
-pub const DEFAULT_400_HEADER: &str = "HTTP/1.1 400 Bad Request\nContent-Type: text/html\n\n";
+pub const DEFAULT_400_HEADER: &str = "HTTP/1.1 400 Bad Request\nContent-Type: text/html";
 
 /// This is the default 401 unauthorized errors' header.
-pub const DEFAULT_401_HEADER: &str = "HTTP/1.1 401 Unauthorized\nContent-Type: text/html\n\n";
+pub const DEFAULT_401_HEADER: &str = "HTTP/1.1 401 Unauthorized\nContent-Type: text/html";
 
 /// This is the default 402 payment required errors' header.
-pub const DEFAULT_402_HEADER: &str = "HTTP/1.1 402 Payment Required\nContent-Type: text/html\n\n";
+pub const DEFAULT_402_HEADER: &str = "HTTP/1.1 402 Payment Required\nContent-Type: text/html";
 
-/// ### Take this as a parameter in your handle function
-/// **This contains 5 things:**
-/// 1) `path`: This contains the path that the person requested like /hello or /something.
-/// 2) `method`: This contains the method used to send the request like: GET or POST.
-/// 3) `get_request`: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
-/// 4) `protocol`: This contains the protocol used to make the HTTP request like:
-/// 5) `post_request`: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
+/// # Request Struct
+/// **This is the structure that you have to import in your handle function.**
 pub struct Request {
-    /// path: This contains the path that the person requested like /hello or /something.
-    pub path: &'static str,
-    /// method: This contains the method used to send the request like: GET or POST.
+    /// **Tells the method used to connect to your server, either GET or POST.**
     pub method: &'static str,
-    /// get_request: This contains the GET requests' parameters (if GET request was made) like: ?q=something%20awesome.
+    /// **Tells the path at which the request was made.**
+    /// For example: /path
+    pub path: &'static str,
+    /// **Tells the parameters that were passed to the url in form of get request.**
+    /// For example: q=Hello%20World
     pub get_request: &'static str,
-    /// protocol: This contains the protocol used to make the HTTP request like:
+    /// **This tells whether the request was a close or keep alive.**
+    /// For example: q=Hello%20World
+    pub data: bool,
+    /// **This tells which protocol was used to make the request.**
+    /// For example: http/1.1
     pub protocol: &'static str,
-    /// post_request: This contains the POST requests' parameter (if POST request was made) like: {something:something}.
-    pub post_request: &'static str,
 }
 
-/// # Use this function to initialize rohanasan backend framework.
-/// **Provide this a port datatype: `u16`,**
-/// ## Usage:
-/// ```usage
-/// rohanasan! {
-///      serve(init(8080), handle).await;
-/// }
-/// ```
-/// ## Example:
-/// ```rust
-/// use rohanasan::{init, Request, serve, rohanasan};
-///
-/// fn handle(request: Request) -> String {
-///     String::from("Hello!")
-/// }
-///
-/// fn main() {
-///     rohanasan! {
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-#[cfg(not(target_os = "linux"))]
-pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
-    let opt: c_int = 1;
-
-    let server_fd: c_int = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
-    if server_fd == -1 {
-        panic!("Failed to create socket");
-    }
-    let address: sockaddr_in = sockaddr_in {
-        sin_family: AF_INET as sa_family_t,
-        sin_port: unsafe { htons(port) },
-        sin_addr: in_addr { s_addr: INADDR_ANY },
-        sin_zero: [0; 8],
-        sin_len: 1,
-    };
-    let addrlen: usize = size_of::<sockaddr_in>();
-    let res: c_int = unsafe {
-        setsockopt(
-            server_fd,
-            SOL_SOCKET,
-            SO_REUSEPORT,
-            &opt as *const i32 as *const c_void,
-            std::mem::size_of_val(&opt) as socklen_t,
-        )
-    };
-    if res == -1 {
-        panic!("Failed to set socket option");
-    }
-    (server_fd, address, addrlen)
+async fn path_exists(path: String) -> bool {
+    fs::metadata(path).is_ok()
 }
 
-/// # Use this function to initialize rohanasan backend framework.
-/// **Provide this a port datatype: `u16`,**
-/// ## Usage:
-/// ```ignore
-/// rohanasan! {
-///      serve(init(8080), handle).await;
-/// }
-/// ```
-/// ## Example:
-/// ```no_run
-/// use rohanasan::{init, Request, serve, rohanasan};
-///
-/// fn handle(request: Request) -> String {
-///     String::from("Hello!")
-/// }
-///
-/// fn main() {
-///     rohanasan! {
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-#[cfg(target_os = "linux")]
-pub fn init(port: u16) -> (i32, sockaddr_in, usize) {
-    let opt: i32 = 1;
-
-    let server_fd: i32 = unsafe { socket(AF_INET, SOCK_STREAM, 0) };
-    if server_fd == -1 {
-        panic!("Failed to create socket");
-    }
-    let address: sockaddr_in = sockaddr_in {
-        sin_family: AF_INET as sa_family_t,
-        sin_port: unsafe { htons(port) },
-        sin_addr: in_addr { s_addr: INADDR_ANY },
-        sin_zero: [0; 8],
-    };
-    let addrlen: usize = size_of::<sockaddr_in>();
-    let res: i32 = unsafe {
-        setsockopt(
-            server_fd,
-            SOL_SOCKET,
-            SO_REUSEADDR,
-            &opt as *const i32 as *const c_void,
-            size_of::<i32>() as socklen_t,
-        )
-    };
-    if res == -1 {
-        panic!("Failed to set socket option");
-    }
-    (server_fd, address, addrlen)
-}
-
-/// # Use this function to serve the initialized port according to handle.
-/// **Provide this the value returned by the init function and a handle function as well.**
-/// ## Usage:
-/// ```ignore
-/// rohanasan! {
-///     serve(init(8080), handle).await;
-/// }
-/// ```
-/// ## Example:
-/// ```no_run
-/// use rohanasan::{init, Request, serve, rohanasan};
-///
-/// fn handle(request: Request) -> String {
-///     String::from("Hello!")
-/// }
-///
-/// fn main() {
-///     rohanasan! {
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-pub async fn serve<F>(args: (i32, sockaddr_in, usize), func: F)
+async fn handle_connection<F>(mut stream: TcpStream, func: F)
 where
-    F: Fn(Request) -> String + Send + Sync + 'static + Copy,
+    F: Fn(Request) -> String + Send,
 {
-    let (server_fd, address, addrlen) = args;
-    let if_bind: i32 = unsafe {
-        bind(
-            server_fd,
-            &address as *const _ as *const sockaddr,
-            addrlen as socklen_t,
-        )
-    };
-    if if_bind == -1 {
-        panic!("Failed to bind");
-    }
-    let if_listen = unsafe { listen(server_fd, 3) };
-    if if_listen == -1 {
-        panic!("Failed to listen");
-    }
-    loop {
-        let new_socket: i32 = unsafe {
-            accept(
-                server_fd,
-                &address as *const _ as *mut sockaddr,
-                &addrlen as *const _ as *mut socklen_t,
-            )
-        };
-        if new_socket == -1 {
-            continue;
-        }
-        async_std::task::spawn(async move {
-            let mut buf: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE]; // Allocate buffer
+    let mut buffer = [0; 1024];
+    let n = stream
+        .read(&mut buffer)
+        .await
+        .expect("error not able to read socket.");
 
-            unsafe {
-                recv(
-                    new_socket,
-                    buf.as_mut_ptr() as *mut c_void,
-                    BUFFER_SIZE - 1,
-                    0,
-                );
-                puts(&buf as *const _ as *const c_char);
-            }
-            let rust_buffer = String::from_utf8(Vec::from(buf));
-            match rust_buffer {
-                Ok(rust_buffer) => {
-                    let tokens = rust_buffer.leak().split_whitespace().collect::<Vec<&str>>();
-                    let method = tokens[0];
-                    let mut path: &str = "";
-                    let mut get_request = "";
-                    let mut post_request = "";
-                    let mut protocol = "";
-                    if tokens.len() > 2 {
-                        path = tokens[1].split('?').collect::<Vec<&str>>()[0];
-                        if path.ends_with('/') && path != "/" {
-                            path = &path[0..path.len() - 1];
-                        }
-                        if tokens[1].split('?').collect::<Vec<&str>>().len() > 1 {
-                            get_request = tokens[1].split('?').collect::<Vec<&str>>()[1];
+    if n == 0 {
+        return;
+    }
+
+    let request = &buffer[..n];
+    // Parse HTTP headers
+    let mut headers: Vec<&[u8]> = Vec::new();
+    let mut current_header_start = 0;
+    for i in 0..n - 1 {
+        if request[i] == b'\r' && i + 1 < request.len() && request[i + 1] == b'\n' {
+            headers.push(&request[current_header_start..=i]);
+            current_header_start = i + 2;
+        }
+        if request[i] == b'\n' {
+            //  The request maker has done some serious mistake in doing so. But, don't worry, I forgive them.
+            headers.push(&request[current_header_start..=i]);
+            current_header_start = i + 2;
+        }
+        if request[i] == b'\r'
+            && i + 3 < request.len()
+            && request[i + 1] == b'\n'
+            && request[i + 2] == b'\r'
+            && request[i + 3] == b'\n'
+        {
+            break;
+        }
+        if request[i] == b'\n' && i + 1 < request.len() && request[i + 1] == b'\n' {
+            break;
+        }
+        // else { "rohanasan received only the header and not any request clubbed to it. And, if it wasn't just the header, along with non-utf8 characters, what are you doing? just think about yourself once.... How did you manage to send such a bad request like that? Please, sit down, relax, enjoy a cup of coffee, and then create a valid request :) " }
+    }
+
+    let mut method: &'static str = "POST";
+    let mut path: &'static str = "";
+    let mut get_request: &'static str = "";
+    let mut protocol: &'static str = "";
+    let mut keep_alive = false;
+    let mut request_was_correct = true;
+
+    for i in headers {
+        let line_of_header = String::from_utf8(i.to_vec());
+        match line_of_header {
+            Ok(line_of_header) => {
+                let our_line = line_of_header.trim().to_lowercase();
+                if our_line.starts_with("get") {
+                    method = "GET";
+                    let tokens = our_line
+                        .clone()
+                        .leak()
+                        .split_whitespace()
+                        .collect::<Vec<&str>>(); // leaks :cry:, just like how tears leak. XD
+                    if tokens.len() > 1 {
+                        if tokens[1].contains('?') {
+                            let parts: Vec<&str> = tokens[1].split('?').collect();
+                            if parts[0].as_bytes()[parts[0].len() - 1] == "/".as_bytes()[0]
+                                && parts[0] != "/"
+                            {
+                                path = &parts[0][..parts[0].len() - 1];
+                            } else {
+                                path = parts[0];
+                            }
+                            if parts.len() > 1 {
+                                get_request = parts[1];
+                            }
+                        } else if tokens[1].as_bytes()[tokens[1].len() - 1] == "/".as_bytes()[0]
+                            && tokens[1] != "/"
+                        {
+                            path = &tokens[1][..tokens[1].len() - 1];
                         } else {
-                            get_request = "";
+                            path = tokens[1];
                         }
+                    }
+                    if tokens.len() > 2 {
                         protocol = tokens[2];
-                        if method == "POST" {
-                            post_request = tokens[tokens.len() - 1];
-                        }
-                    }
-                    let the_thing_we_need_to_give_to_func = Request {
-                        path,
-                        method,
-                        get_request,
-                        protocol,
-                        post_request,
-                    };
-                    if path.starts_with("/static/") && path != "/static/" && path != "/static" {
-                        let mut file_path = String::from(STATIC_FOLDER);
-                        file_path.push_str(&path[8..]);
-                        // println!("{}", file_path);
-
-                        let file_path_cstr = CString::new(file_path).expect("Invalid file path");
-                        serve_static_file(new_socket, file_path_cstr.as_ptr());
-                        unsafe {
-                            close(new_socket);
-                        }
-                    } else {
-                        let response = func(the_thing_we_need_to_give_to_func);
-                        unsafe {
-                            send(
-                                new_socket,
-                                response.as_ptr() as *const c_void,
-                                response.len(),
-                                0,
-                            ); // Use the correct length
-                            close(new_socket);
-                        }
                     }
                 }
-                Err(_) => {
-                    // If conversion fails, handle the error
-                    let response = String::from("URL format not in utf8 format");
-                    unsafe {
-                        send(
-                            new_socket,
-                            response.as_ptr() as *const c_void,
-                            response.len(),
-                            0,
-                        ); // Use the correct length
-                        close(new_socket);
-                    }
-                    // You may choose to return early, log the error, or take any other appropriate action here.
+                if our_line.starts_with("connection")
+                    && our_line.len() > 11
+                    && our_line.contains("keep-alive")
+                {
+                    keep_alive = true;
                 }
-            }
-        });
-    }
-}
-
-/// This is the default buffer size used in rohanasan's development majorly.
-pub const BUFFER_SIZE: usize = 1024;
-
-// Function to serve static files
-
-extern "C" {
-    fn htons(p0: u16) -> u16;
-}
-
-/// # Use this function to send a file.
-/// **Provide this a header and a path to a html file.**
-/// ## Usage:
-/// ```ignore
-/// send_file(DEFAULT_HTML_HEADER,"./html/index.html")
-/// ```
-/// ## Example:
-/// ```no_run
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_file, ERROR_404_HEADER, rohanasan};
-///
-/// fn handle(request: Request) -> String {
-///     if request.path == "/"{
-///         send_file(DEFAULT_HTML_HEADER,"./html/index.html")
-///     }
-///     else {
-///         send_file(ERROR_404_HEADER ,"./html/404.html")
-///     }
-/// }
-/// fn main() {
-///     rohanasan! {
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-pub fn send_file(header: &str, file_path: &str) -> String {
-    let mut file = File::open(file_path).expect("Please enter the correct path to your html file");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("File can't be read!");
-    send_http_response(header, &contents)
-}
-
-/// # Use this function to send an HTTP response.
-/// **Provide this function header:&str and a body:&str.**
-/// ## Usage:
-/// ```ignore
-/// send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>")
-/// ```
-/// ## Example:
-/// ```no_run
-/// use rohanasan::{init, Request, serve, DEFAULT_HTML_HEADER, send_http_response, ERROR_404_HEADER, rohanasan};
-///
-/// fn handle(request: Request) -> String {
-///     if request.path == "/"{
-///         send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>")
-///     }
-///     else {
-///         send_http_response(ERROR_404_HEADER ,"<h1>404</h1>")
-///     }
-/// }
-/// fn main() {
-///     rohanasan! {
-///         serve(init(8080), handle).await;
-///     }
-/// }
-/// ```
-pub fn send_http_response(header: &str, body: &str) -> String {
-    let thing: String = header.to_string().clone() + body;
-    thing
-}
-fn serve_static_file(client_socket: c_int, file_path: *const c_char) {
-    let file_path_str = unsafe { CStr::from_ptr(file_path).to_string_lossy() };
-    let file_path = file_path_str.trim();
-
-    // Attempt to open the file
-    let mut file = match File::open(file_path) {
-        Ok(file) => file,
-        Err(_) => {
-            let not_found_response =
-                b"HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n<h1>404 Not Found</h1>";
-            unsafe {
-                send(
-                    client_socket,
-                    not_found_response.as_ptr() as *const c_void,
-                    not_found_response.len(),
-                    0,
-                );
-                close(client_socket);
-            }
-            return;
-        }
-    };
-
-    // Determine content type based on file extension
-    let content_type = determine_content_type(file_path);
-
-    // Send HTTP response header with correct content type
-    let response_header = format!("HTTP/1.1 200 OK\r\nContent-Type: {}\r\n\r\n", content_type);
-    let response_header_cstr =
-        CString::new(response_header.clone()).expect("Failed to create response header CString");
-    unsafe {
-        send(
-            client_socket,
-            response_header_cstr.as_ptr() as *const c_void,
-            response_header.len(),
-            0,
-        )
-    };
-
-    // Send file content
-    let mut buffer = [0; BUFFER_SIZE];
-    loop {
-        match file.read(&mut buffer) {
-            Ok(0) => break,
-            Ok(bytes_read) => {
-                unsafe {
-                    send(
-                        client_socket,
-                        buffer.as_ptr() as *const c_void,
-                        bytes_read,
-                        0,
-                    )
-                };
             }
             Err(_) => {
-                eprintln!("Error reading file");
-                break;
+                request_was_correct = false;
             }
         }
     }
+    // // Check if the connection is keep-alive or closed
+    // let response = func(thing_to_send_to_programmers_function);
+    //
+    // stream.write_all(response.as_bytes()).await?;
+    // stream.flush().await?;
+    if request_was_correct {
+        if path.starts_with("/static/") && path.len() > 8 {
+            let file_path = ".".to_owned() + path;
+            if path_exists(file_path.clone()).await {
+                let mut content = Vec::new();
+                let mut file = File::open(&file_path)
+                    .expect("Error opening file (This is not an actual possible error)");
+                let _ = file.read_to_end(&mut content);
+                let content_type = determine_content_type(&file_path);
+                let mut response_headers = format!(
+                    "HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
+                    content.len(),
+                    content_type
+                );
+                if keep_alive {
+                    response_headers = format!(
+                        "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
+                        content.len(),
+                        content_type
+                    );
+                }
+                let mut response = response_headers.into_bytes();
+                response.extend_from_slice(&content);
+                stream.write_all(&response).await.expect("Fail to send");
+                stream.flush().await.expect("");
+            } else {
+                let answer = "HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>404</h1>";
+                stream
+                    .write_all(answer.as_bytes())
+                    .await
+                    .expect("Fail to send");
+                stream.flush().await.expect("");
+            }
+        } else {
+            let thing_to_send_to_programmers_function: Request = Request {
+                method,
+                path,
+                get_request,
+                data: keep_alive,
+                protocol,
+            };
+            let answer = func(thing_to_send_to_programmers_function);
 
-    unsafe { close(client_socket) };
+            stream
+                .write_all(answer.as_bytes())
+                .await
+                .expect("Fail to send");
+            stream.flush().await.expect("");
+        }
+    } else {
+        let answer = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received.</h1>";
+        stream
+            .write_all(answer.as_bytes())
+            .await
+            .expect("Fail to send");
+        stream.flush().await.expect("");
+    }
 }
 
-// Function to determine content type based on file extension
+/// # The serve function
+/// **Use this function to start the server at a specific port and also provide it with a handler function.**
+/// ## Usage:
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
+/// };
+/// fn handle(req: Request) -> String {
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+/// }
+///
+/// fn main() {
+///     rohanasan! {
+///         serve(8080, handle)
+///     }
+/// }
+/// ```
+pub async fn serve<F>(port: u16, func: F)
+where
+    F: Fn(Request) -> String + Send + 'static + Copy,
+{
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let listener = TcpListener::bind(addr).await.expect("");
+
+    loop {
+        let (stream, _) = listener.accept().await.expect("");
+        tokio::spawn(handle_connection(stream, func));
+    }
+}
+
+/// # Send HTTP response function:
+/// **Use this function to send a http response**
+/// **Provide it with a header, a response string and req.data.**
+/// ## Example usage:
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
+/// };
+/// fn handle(req: Request) -> String {
+///
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+/// }
+///
+/// fn main() {
+///     rohanasan! {
+///         serve(8080, handle)
+///     }
+/// }
+/// ```
+pub fn send_http_response(header: &str, body: &str, keep_alive: bool) -> String {
+    if keep_alive {
+        format!(
+            "{}\r\nContent-Length:{}\nConnection:Keep-Alive\r\n\r\n{}",
+            header,
+            body.len(),
+            body
+        )
+    } else {
+        format!(
+            "{}\r\nContent-Length:{}\nConnection:Close\r\n\r\n{}",
+            header,
+            body.len(),
+            body
+        )
+    }
+}
+
+/// # Send file function:
+/// **Use this function to send a file as a response.**
+/// **Provide it with a header, the file's path and req.data.**
+/// ## Example usage:
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,
+/// };
+/// fn handle(req: Request) -> String {
+///
+///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+/// }
+///
+/// fn main() {
+///     rohanasan! {
+///         serve(8080, handle)
+///     }
+/// }
+/// ```
+pub fn send_file(header: &str, file_path: &str, keep_alive: bool) -> String {
+    let contents = fs::read_to_string(file_path)
+        .expect("Please place the html files at the correct place, also check the directory from where you are running this server");
+    send_http_response(header, &contents, keep_alive)
+}
+
 fn determine_content_type(file_path: &str) -> String {
     match file_path.rsplit('.').next() {
         Some("css") => String::from("text/css"),
@@ -618,16 +506,27 @@ fn determine_content_type(file_path: &str) -> String {
     }
 }
 
-/// # Url Decode crate wrapper
-/// **Crate used**: url decode, but have made the wrapper which suits rohanasan's needs.
+/// # Send file function:
+/// **Use this function to convert an encoded url to a decoded one.**
+/// **Provide it with a String**
+/// **This will convert q=Hello%20World to q=Hello World**
+/// ## Example usage:
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,url_decode
+/// };
+/// fn handle(req: Request) -> String {
+///     if req.path == "/request"{
+///         println!("{}" ,url_decode(req.get_request()));
+///     }
+/// }
 ///
-/// ## Usage:
-/// ```ignore
-/// decode(request.get_request())
+/// fn main() {
+///     rohanasan! {
+///         serve(8080, handle)
+///     }
+/// }
 /// ```
-/// ## Explanation:
-/// - Suppose request.get_request() contained: `q=Hello%20world`
-/// - decode will return: `q=Hello world`
-pub fn decode(x: &str) -> String {
-    urldecode::decode(x.to_string())
+pub fn url_decode(encoded_string: &str) -> String {
+    urldecode::decode(encoded_string.to_string())
 }
