@@ -2,4 +2,6 @@
 
 ### The bechmarking tool mostly used is wrk
 **Command used to run the wrk tool:**
+```yaml
 wrk -t 2 -c 400 http://localhost:8080
+```
