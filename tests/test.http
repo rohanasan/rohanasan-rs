@@ -1,0 +1,30 @@
+GET http://localhost:8080/
+Accept: application/json
+
+### Let try breaking the server in every possible way:
+
+POST http://localhost:8080/as asdkfas;dfkasdkfaf'lka'sdf
+Accept: application/json
+
+### Lets send a non-ut8 character
+
+### Thanks to https://stackoverflow.com/questions/1319022/really-good-bad-utf-8-example-test-data#comment96027804_1319022
+
+GET http://localhost:8080/ăѣ𝔠ծềſģȟᎥ𝒋ǩľḿꞑȯ𝘱𝑞𝗋𝘴ȶ𝞄𝜈ψ𝒙𝘆𝚣1234567890?~𝖠Β𝒞𝘋𝙴𝓕ĢȞỈ𝕵ꓗʟ𝙼ℕ০𝚸𝗤ՀꓢṰǓⅤ𝔚Ⲭ𝑌𝙕𝘢𝕤ß
+Accept: application/json
+
+### Server didn't crash
+
+GET http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+http://localhost:8080/¡¤¦§¨©ª«¬-®¯±²³¶¹º»¼½¾¿‡•…‪‰‹›⁠⁰€™□
+Let's crash the server!!!!! hahahahaha
+POST asdkfja;sdf
+alkjaskjl\r\n\n\n\n\n\n\n
+}}{{}{}{}P}}{P}{}}
+Accept: application/json
+
+# Server never crashed
