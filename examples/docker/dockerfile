@@ -1,0 +1,23 @@
+# Use Alpine Linux as the base image
+FROM alpine:latest
+
+# Install system dependencies
+RUN apk add --no-cache \
+    build-base \
+    openssl-dev \
+    cargo
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the project files into the container
+COPY . .
+
+# Build the project
+RUN cargo build --release
+
+# Expose port 8080 (example)
+EXPOSE 8080
+
+# Define the command to run the project (generic)
+CMD ["cargo", "run", "--release"]
