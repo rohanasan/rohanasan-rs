@@ -506,7 +506,7 @@ fn determine_content_type(file_path: &str) -> String {
     }
 }
 
-/// # Send file function:
+/// # Url Decode function:
 /// **Use this function to convert an encoded url to a decoded one.**
 /// **Provide it with a String**
 /// **This will convert q=Hello%20World to q=Hello World**
