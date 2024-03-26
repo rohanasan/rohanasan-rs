@@ -10,7 +10,12 @@ path = "src/lib.rs"
 
 [package]
 authors = ["Rohan Vashisht"]
-categories = ["web-programming::http-server", "web-programming::websocket", "asynchronous", "os"]
+categories = [
+    "web-programming::http-server",
+    "web-programming::websocket",
+    "asynchronous",
+    "os",
+]
 description = "An extremely fast backend framework for rust! Built from scratch using tokio, easy to use and asynchronous. Available for multiple programming languages and cross-platform."
 edition = "2021"
 keywords = ["web", "http", "server", "backend", "framework"]
@@ -19,4 +24,4 @@ name = "rohanasan"
 publish = true
 readme = "README.md"
 repository = "https://github.com/rohanasan/rohanasan-rs"
-version = "0.5.26"
+version = "0.5.27"
