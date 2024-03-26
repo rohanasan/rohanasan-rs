@@ -3,6 +3,7 @@
 <img width="300" src="./docs/static/rohanasan.webp"/>
 
 # Rohanasan 
+
 ### An extremely fast backend framework built for rust
 
 ![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.2+-ab6000.svg)
@@ -14,11 +15,16 @@
 
 </div>
 
-> Made with Performance, optimization and ease of use in mind.
->
-> Currently available in C/C++/Rust programming languages only.
->
-> This library has been built from scratch using tokio.
+<div align="center">
+
+**Made with Performance, optimization and ease of use in mind.**
+
+**Currently available in C/C++/Rust programming languages only.**
+
+**This library has been built from scratch using tokio.**
+
+</div>
+
 # Basic hello world example:
 > Basic Html implementation of hello world:
 ```rust
