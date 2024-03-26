@@ -1,13 +1,9 @@
-<center>
+<div align="center">
+    
+<img width="300" src="./docs/static/rohanasan.webp"/>
 
-<img style="border-radius:35px;border:4px solid gray;max-width:500px;width:50%;" src="./docs/static/rohanasan.webp">
-
-</center>
-
-
-# <center> Rohanasan </center>
-### <center>An extremely fast backend framework built for rust</center>
-<center>
+# Rohanasan 
+### An extremely fast backend framework built for rust
 
 ![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.2+-ab6000.svg)
 [![Crates.io](https://img.shields.io/crates/v/rohanasan.svg)](https://crates.io/crates/rohanasan)
@@ -16,7 +12,7 @@
 ![Maintained](https://img.shields.io/maintenance/yes/2024?style=flat-square)
 [![License](https://img.shields.io/crates/l/rohanasan.svg)](https://opensource.org/licenses/MIT)
 
-</center>
+</div>
 
 > Made with Performance, optimization and ease of use in mind.
 >
