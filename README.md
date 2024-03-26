@@ -1,6 +1,6 @@
 <div align="center">
     
-<img width="300" src="./docs/static/rohanasan.webp"/>
+<img width="300" src="https://raw.githubusercontent.com/rohanasan/rohanasan-rs/main/docs/static/rohanasan.webp"/>
 
 # Rohanasan 
 
