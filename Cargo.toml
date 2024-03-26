@@ -15,6 +15,7 @@ categories = [
     "web-programming::websocket",
     "asynchronous",
     "os",
+    "network-programming"
 ]
 description = "An extremely fast backend framework for rust! Built from scratch using tokio, easy to use and asynchronous. Available for multiple programming languages and cross-platform."
 edition = "2021"
@@ -24,4 +25,4 @@ name = "rohanasan"
 publish = true
 readme = "README.md"
 repository = "https://github.com/rohanasan/rohanasan-rs"
-version = "0.5.27"
+version = "0.5.28"
