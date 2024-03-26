@@ -1,4 +1,3 @@
-use rohanasan;
 #[cfg(test)]
 mod url_test {
     use rohanasan::url_decode;

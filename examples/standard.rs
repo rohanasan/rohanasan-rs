@@ -3,7 +3,7 @@ use rohanasan::{
 };
 fn handle(req: Request) -> String {
     if req.path == "/" {
-        send_file(DEFAULT_HTML_HEADER, "./html/hello.html", req.data)
+        send_file(DEFAULT_HTML_HEADER, "./html/index.html", req.data)
     } else if req.path == "/hello" {
         send_http_response(DEFAULT_HTML_HEADER, "<h1>Hi, How are you?</h1>", req.data)
     } else if req.path == "/req" {
