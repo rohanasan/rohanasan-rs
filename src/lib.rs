@@ -1,9 +1,10 @@
 #![doc = include_str!("../README.md")]
 
+mod priv_parse;
+
 use std::fs;
-use std::fs::File;
-use std::io::Read;
 use std::net::SocketAddr;
+use priv_parse::{handle_static_folder, parse_headers};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 pub use tokio::runtime::Builder;
@@ -83,14 +84,11 @@ pub struct Request {
     pub get_request: &'static str,
     /// **This tells whether the request was a close or keep alive.**
     /// For example: q=Hello%20World
-    pub data: bool,
+    pub keep_alive: bool,
     /// **This tells which protocol was used to make the request.**
     /// For example: http/1.1
     pub protocol: &'static str,
-}
-
-async fn path_exists(path: String) -> bool {
-    fs::metadata(path).is_ok()
+    request_was_correct:bool,
 }
 
 async fn handle_connection<F>(mut stream: TcpStream, func: F)
@@ -107,146 +105,119 @@ where
         return;
     }
 
-    let request = &buffer[..n];
-    // Parse HTTP headers
-    let mut headers: Vec<&[u8]> = Vec::new();
-    let mut current_header_start = 0;
-    for i in 0..n - 1 {
-        if request[i] == b'\r' && i + 1 < request.len() && request[i + 1] == b'\n' {
-            headers.push(&request[current_header_start..=i]);
-            current_header_start = i + 2;
-        }
-        if request[i] == b'\n' {
-            //  The request maker has done some serious mistake in doing so. But, don't worry, I forgive them.
-            headers.push(&request[current_header_start..=i]);
-            current_header_start = i + 2;
-        }
-        if request[i] == b'\r'
-            && i + 3 < request.len()
-            && request[i + 1] == b'\n'
-            && request[i + 2] == b'\r'
-            && request[i + 3] == b'\n'
-        {
-            break;
-        }
-        if request[i] == b'\n' && i + 1 < request.len() && request[i + 1] == b'\n' {
-            break;
-        }
-        // else { "rohanasan received only the header and not any request clubbed to it. And, if it wasn't just the header, along with non-utf8 characters, what are you doing? just think about yourself once.... How did you manage to send such a bad request like that? Please, sit down, relax, enjoy a cup of coffee, and then create a valid request :) " }
-    }
-
-    let mut method: &'static str = "POST";
-    let mut path: &'static str = "";
-    let mut get_request: &'static str = "";
-    let mut protocol: &'static str = "";
-    let mut keep_alive = false;
-    let mut request_was_correct = true;
-
-    for i in headers {
-        let line_of_header = String::from_utf8(i.to_vec());
-        match line_of_header {
-            Ok(line_of_header) => {
-                let our_line = line_of_header.trim().to_lowercase();
-                if our_line.starts_with("get") {
-                    method = "GET";
-                    let tokens = our_line
-                        .clone()
-                        .leak()
-                        .split_whitespace()
-                        .collect::<Vec<&str>>(); // leaks :cry:, just like how tears leak. XD
-                    if tokens.len() > 1 {
-                        if tokens[1].contains('?') {
-                            let parts: Vec<&str> = tokens[1].split('?').collect();
-                            if parts[0].as_bytes()[parts[0].len() - 1] == "/".as_bytes()[0]
-                                && parts[0] != "/"
-                            {
-                                path = &parts[0][..parts[0].len() - 1];
-                            } else {
-                                path = parts[0];
-                            }
-                            if parts.len() > 1 {
-                                get_request = parts[1];
-                            }
-                        } else if tokens[1].as_bytes()[tokens[1].len() - 1] == "/".as_bytes()[0]
-                            && tokens[1] != "/"
-                        {
-                            path = &tokens[1][..tokens[1].len() - 1];
-                        } else {
-                            path = tokens[1];
-                        }
-                    }
-                    if tokens.len() > 2 {
-                        protocol = tokens[2];
-                    }
-                }
-                if our_line.starts_with("connection")
-                    && our_line.len() > 11
-                    && our_line.contains("keep-alive")
-                {
-                    keep_alive = true;
-                }
-            }
-            Err(_) => {
-                request_was_correct = false;
-            }
-        }
-    }
-    // // Check if the connection is keep-alive or closed
-    // let response = func(thing_to_send_to_programmers_function);
-    //
-    // stream.write_all(response.as_bytes()).await?;
-    // stream.flush().await?;
-    if request_was_correct {
-        if path.starts_with("/static/") && path.len() > 8 {
-            let file_path = ".".to_owned() + path;
-            if path_exists(file_path.clone()).await {
-                let mut content = Vec::new();
-                let mut file = File::open(&file_path)
-                    .expect("Error opening file (This is not an actual possible error)");
-                let _ = file.read_to_end(&mut content);
-                let content_type = determine_content_type(&file_path);
-                let mut response_headers = format!(
-                    "HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
-                    content.len(),
-                    content_type
-                );
-                if keep_alive {
-                    response_headers = format!(
-                        "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Length: {}\r\nContent-Type: {}\r\n\r\n",
-                        content.len(),
-                        content_type
-                    );
-                }
-                let mut response = response_headers.into_bytes();
-                response.extend_from_slice(&content);
-                stream.write_all(&response).await.expect("Fail to send");
-                stream.flush().await.expect("");
+    let request:Request = parse_headers(buffer, n);
+    
+    if request.request_was_correct {
+        if request.keep_alive {
+            if request.path.starts_with("/static/") && request.path.len() > 8 {
+                handle_static_folder(&request, &mut stream).await;
             } else {
-                let answer = "HTTP/1.1 404 Not Found\r\nConnection: close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>404</h1>";
+                let answer = func(request);
+
                 stream
                     .write_all(answer.as_bytes())
                     .await
                     .expect("Fail to send");
                 stream.flush().await.expect("");
             }
-        } else {
-            let thing_to_send_to_programmers_function: Request = Request {
-                method,
-                path,
-                get_request,
-                data: keep_alive,
-                protocol,
-            };
-            let answer = func(thing_to_send_to_programmers_function);
+            let mut counter = 0;
+            // so that I can send 10 things within one connection. Correct? :thinking:
+            // Note: No timeout has been implemented. Only a counter.
+            // How does the get request happen? is it sending multiple request all at once or one by one?
+            // if done one by one, there might be a delay in the next request? This loop is insentanious?
+            // I think I am doing something wrong here, If something is wrong, it will get fixed in the next update.
+            // If it is correct, these comments would be removed.
+            while counter < 10 {
+                counter += 1;
+                let request:Request = parse_headers(buffer, n);
+                if request.request_was_correct && request.keep_alive{
+                    // send the response for the initial request.
+                    let answer = func(request);
+                    
+                    stream
+                        .write_all(answer.as_bytes())
+                        .await
+                        .expect("Fail to send");
+                    stream.flush().await.expect("");
+                    // then send other responses in loop
+                    loop{
+                        let mut buffer = [0; 1024];
+                        let n = stream
+                            .read(&mut buffer)
+                            .await
+                            .expect("error not able to read socket.");
 
-            stream
-                .write_all(answer.as_bytes())
-                .await
-                .expect("Fail to send");
-            stream.flush().await.expect("");
+                        if n == 0 {
+                            return; // breaking and returning (closing the connection)
+                        }
+
+                        let request_inside_loop:Request = parse_headers(buffer, n);
+                        if request_inside_loop.request_was_correct{
+                            if request_inside_loop.keep_alive{
+                                if request_inside_loop.path.starts_with("/static/") && request_inside_loop.path.len()> 8{
+                                    handle_static_folder(&request_inside_loop, &mut stream).await;
+                                }
+                                else{
+                                    let answer = func(request_inside_loop);
+                            
+                                    stream
+                                        .write_all(answer.as_bytes())
+                                        .await
+                                        .expect("Fail to send");
+                                    stream.flush().await.expect("");
+                                }
+                            } else {
+                                if request_inside_loop.path.starts_with("/static/") && request_inside_loop.path.len()> 8{
+                                    handle_static_folder(&request_inside_loop, &mut stream).await;
+                                }
+                                else{
+                                    let answer = func(request_inside_loop);
+                            
+                                    stream
+                                        .write_all(answer.as_bytes())
+                                        .await
+                                        .expect("Fail to send");
+                                    stream.flush().await.expect("");
+                                }
+                            }
+                        }
+                        else{
+                            let answer = "HTTP/1.1 200 OK\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>";
+                                stream
+                                    .write_all(answer.as_bytes())
+                                    .await
+                                    .expect("Fail to send");
+                                stream.flush().await.expect("");
+                                break;
+                        }
+                    }
+                } else {
+                    let answer = "HTTP/1.1 200 OK\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>";
+                    
+                    stream
+                        .write_all(answer.as_bytes())
+                        .await
+                        .expect("Fail to send");
+                    stream.flush().await.expect("");
+                    break;
+                }
+            }
+        } else {
+            if request.path.starts_with("/static/") && request.path.len()> 8{
+                handle_static_folder(&request, &mut stream).await;
+            }
+            else{
+                let answer = func(request);
+        
+                stream
+                    .write_all(answer.as_bytes())
+                    .await
+                    .expect("Fail to send");
+                stream.flush().await.expect("");
+            }
         }
     } else {
-        let answer = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received.</h1>";
+        let answer = "HTTP/1.1 200 OK\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received.</h1>";
         stream
             .write_all(answer.as_bytes())
             .await
@@ -345,20 +316,6 @@ pub fn send_file(header: &str, file_path: &str, keep_alive: bool) -> String {
     let contents = fs::read_to_string(file_path)
         .expect("Please place the html files at the correct place, also check the directory from where you are running this server");
     send_http_response(header, &contents, keep_alive)
-}
-
-fn determine_content_type(file_path: &str) -> String {
-    match file_path.rsplit('.').next() {
-        Some("css") => String::from("text/css"),
-        Some("txt") => String::from("text/plain"),
-        Some("js") => String::from("application/javascript"),
-        Some("png") => String::from("image/png"),
-        Some("jpg") | Some("jpeg") => String::from("image/jpeg"),
-        Some("gif") => String::from("image/gif"),
-        Some("pdf") => String::from("application/pdf"),
-        Some("htm") | Some("html") => String::from("text/html"),
-        _ => String::from("application/octet-stream"),
-    }
 }
 
 /// # Url Decode function:
