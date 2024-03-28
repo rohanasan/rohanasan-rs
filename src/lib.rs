@@ -128,10 +128,6 @@ where
     if n == 0 {
         return;
     }
-    println!(
-        "{}",
-        String::from_utf8(buffer.to_ascii_lowercase()).expect("msg")
-    );
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
