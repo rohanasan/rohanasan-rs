@@ -1,6 +1,7 @@
 use rohanasan::{
     rohanasan, send_file, send_http_response, serve, url_decode, Request, DEFAULT_HTML_HEADER,
 };
+
 fn handle(req: Request) -> String {
     if req.path == "/" {
         send_file(DEFAULT_HTML_HEADER, "./html/index.html")

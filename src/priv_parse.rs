@@ -1,3 +1,25 @@
+// MIT License
+
+// Copyright (c) 2024 Rohan Vashisht
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 use tokio::fs;
 
 use tokio::{
@@ -8,6 +30,7 @@ use tokio::{
 
 use crate::Request;
 
+/// parse the headers
 pub fn parse_headers(buffer: [u8; 1024], n: usize) -> Request {
     let request = &buffer[..n];
     // Parse HTTP headers
@@ -105,10 +128,12 @@ pub fn parse_headers(buffer: [u8; 1024], n: usize) -> Request {
     }
 }
 
+/// check if path exists
 async fn path_exists(path: String) -> bool {
     fs::metadata(path).await.is_ok()
 }
 
+/// handle static folder
 pub async fn handle_static_folder(request: &Request, strm: &mut TcpStream) {
     let file_path = ".".to_owned() + request.path;
     if path_exists(file_path.clone()).await {
@@ -136,6 +161,7 @@ pub async fn handle_static_folder(request: &Request, strm: &mut TcpStream) {
     }
 }
 
+/// Determine content type.
 fn determine_content_type(file_path: &str) -> String {
     match file_path.rsplit('.').next() {
         Some("css") => String::from("text/css"),
