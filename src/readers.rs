@@ -30,5 +30,5 @@ pub async fn read_the_request(stream: &mut TcpStream) -> ([u8; 1024], usize) {
         .await
         .expect("error not able to read socket.");
 
-    return (buffer, n);
+    (buffer, n)
 }

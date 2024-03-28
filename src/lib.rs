@@ -170,11 +170,9 @@ where
             }
         } else {
             senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
-            return;
         }
     } else {
         senders::send_invalid_utf8_error(&mut stream).await;
-        return;
     }
 }
 /// # The serve function
