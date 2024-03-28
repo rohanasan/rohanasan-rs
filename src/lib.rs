@@ -25,12 +25,15 @@
 mod priv_parse;
 mod readers;
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 
 use priv_parse::parse_headers;
 use readers::read_the_request;
-use tokio::net::{TcpListener, TcpStream};
 pub use tokio::runtime::Builder;
+use tokio::{
+    net::{TcpListener, TcpStream},
+    time::timeout,
+};
 
 /// # Rohanasan macro
 /// **This is the macro inside which you need to declare the serve function.**
@@ -125,49 +128,51 @@ where
     if n == 0 {
         return;
     }
-
+    println!(
+        "{}",
+        String::from_utf8(buffer.to_ascii_lowercase()).expect("msg")
+    );
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
-            // answer the first request
             senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
             let mut counter = 0;
-            // so that I can send 10 things within one connection. Correct? :thinking:
-            // Note: No timeout has been implemented. Only a counter.
-            // How does the get request happen? is it sending multiple request all at once or one by one?
-            // if done one by one, there might be a delay in the next request? This loop is insentanious?
-            // I think I am doing something wrong here, If something is wrong, it will get fixed in the next update.
-            // If it is correct, these comments would be removed.
             while counter < 10 {
                 counter += 1;
+                let request_result =
+                    timeout(Duration::from_secs(5), read_the_request(&mut stream)).await;
+                match request_result {
+                    Ok((buffer, n)) => {
+                        if n == 0 {
+                            return; // breaking and returning (closing the connection)
+                        }
 
-                let (buffer, n) = read_the_request(&mut stream).await;
+                        let request_inside_loop: Request = parse_headers(buffer, n);
 
-                if n == 0 {
-                    return; // breaking and returning (closing the connection)
-                }
-
-                let request_inside_loop: Request = parse_headers(buffer, n);
-
-                if request_inside_loop.request_was_correct {
-                    if request_inside_loop.keep_alive {
-                        senders::send_static_folder_and_programmers_response(
-                            request_inside_loop,
-                            &mut stream,
-                            func,
-                        )
-                        .await;
-                    } else {
-                        senders::send_static_folder_and_programmers_response(
-                            request_inside_loop,
-                            &mut stream,
-                            func,
-                        )
-                        .await;
+                        if request_inside_loop.request_was_correct {
+                            if request_inside_loop.keep_alive {
+                                senders::send_static_folder_and_programmers_response(
+                                    request_inside_loop,
+                                    &mut stream,
+                                    func,
+                                )
+                                .await;
+                            } else {
+                                senders::send_static_folder_and_programmers_response(
+                                    request_inside_loop,
+                                    &mut stream,
+                                    func,
+                                )
+                                .await;
+                                return;
+                            }
+                        } else {
+                            senders::send_invalid_utf8_error(&mut stream).await;
+                        }
+                    }
+                    Err(_) => {
                         return;
                     }
-                } else {
-                    senders::send_invalid_utf8_error(&mut stream).await;
                 }
             }
         } else {
