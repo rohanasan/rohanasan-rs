@@ -1,11 +1,12 @@
 #![doc = include_str!("../README.md")]
 
 mod priv_parse;
+mod readers;
 
 use std::fs;
 use std::net::SocketAddr;
-use priv_parse::{handle_static_folder, parse_headers};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use priv_parse::parse_headers;
+use readers::read_the_request;
 use tokio::net::{TcpListener, TcpStream};
 pub use tokio::runtime::Builder;
 
@@ -91,35 +92,19 @@ pub struct Request {
     request_was_correct:bool,
 }
 
+mod senders;
+
 async fn handle_connection<F>(mut stream: TcpStream, func: F)
 where
-    F: Fn(Request) -> String + Send,
+    F: Fn(Request) -> String + Send +Copy,
 {
-    let mut buffer = [0; 1024];
-    let n = stream
-        .read(&mut buffer)
-        .await
-        .expect("error not able to read socket.");
-
-    if n == 0 {
-        return;
-    }
+    let (buffer, n) = read_the_request(&mut stream).await;
 
     let request:Request = parse_headers(buffer, n);
-    
     if request.request_was_correct {
         if request.keep_alive {
-            if request.path.starts_with("/static/") && request.path.len() > 8 {
-                handle_static_folder(&request, &mut stream).await;
-            } else {
-                let answer = func(request);
-
-                stream
-                    .write_all(answer.as_bytes())
-                    .await
-                    .expect("Fail to send");
-                stream.flush().await.expect("");
-            }
+            // answer the first request
+            senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
             let mut counter = 0;
             // so that I can send 10 things within one connection. Correct? :thinking:
             // Note: No timeout has been implemented. Only a counter.
@@ -129,103 +114,36 @@ where
             // If it is correct, these comments would be removed.
             while counter < 10 {
                 counter += 1;
-                let request:Request = parse_headers(buffer, n);
-                if request.request_was_correct && request.keep_alive{
-                    // send the response for the initial request.
-                    let answer = func(request);
-                    
-                    stream
-                        .write_all(answer.as_bytes())
-                        .await
-                        .expect("Fail to send");
-                    stream.flush().await.expect("");
-                    // then send other responses in loop
-                    loop{
-                        let mut buffer = [0; 1024];
-                        let n = stream
-                            .read(&mut buffer)
-                            .await
-                            .expect("error not able to read socket.");
 
-                        if n == 0 {
-                            return; // breaking and returning (closing the connection)
-                        }
+                let (buffer, n) = read_the_request(&mut stream).await;
 
-                        let request_inside_loop:Request = parse_headers(buffer, n);
-                        if request_inside_loop.request_was_correct{
-                            if request_inside_loop.keep_alive{
-                                if request_inside_loop.path.starts_with("/static/") && request_inside_loop.path.len()> 8{
-                                    handle_static_folder(&request_inside_loop, &mut stream).await;
-                                }
-                                else{
-                                    let answer = func(request_inside_loop);
-                            
-                                    stream
-                                        .write_all(answer.as_bytes())
-                                        .await
-                                        .expect("Fail to send");
-                                    stream.flush().await.expect("");
-                                }
-                            } else {
-                                if request_inside_loop.path.starts_with("/static/") && request_inside_loop.path.len()> 8{
-                                    handle_static_folder(&request_inside_loop, &mut stream).await;
-                                }
-                                else{
-                                    let answer = func(request_inside_loop);
-                            
-                                    stream
-                                        .write_all(answer.as_bytes())
-                                        .await
-                                        .expect("Fail to send");
-                                    stream.flush().await.expect("");
-                                }
-                            }
-                        }
-                        else{
-                            let answer = "HTTP/1.1 200 OK\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>";
-                                stream
-                                    .write_all(answer.as_bytes())
-                                    .await
-                                    .expect("Fail to send");
-                                stream.flush().await.expect("");
-                                break;
-                        }
+                if n == 0 {
+                    return; // breaking and returning (closing the connection)
+                }
+
+                let request_inside_loop:Request = parse_headers(buffer, n);
+
+                if request_inside_loop.request_was_correct{
+                    if request_inside_loop.keep_alive{
+                        senders::send_static_folder_and_programmers_response(request_inside_loop, &mut stream, func).await;
+                    } else {
+                        senders::send_static_folder_and_programmers_response(request_inside_loop, &mut stream, func).await;
+                        return;
                     }
-                } else {
-                    let answer = "HTTP/1.1 200 OK\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>";
-                    
-                    stream
-                        .write_all(answer.as_bytes())
-                        .await
-                        .expect("Fail to send");
-                    stream.flush().await.expect("");
-                    break;
+                }
+                else{
+                    senders::send_invalid_utf8_error(&mut stream).await;
                 }
             }
         } else {
-            if request.path.starts_with("/static/") && request.path.len()> 8{
-                handle_static_folder(&request, &mut stream).await;
-            }
-            else{
-                let answer = func(request);
-        
-                stream
-                    .write_all(answer.as_bytes())
-                    .await
-                    .expect("Fail to send");
-                stream.flush().await.expect("");
-            }
+            senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
+            return;
         }
     } else {
-        let answer = "HTTP/1.1 200 OK\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received.</h1>";
-        stream
-            .write_all(answer.as_bytes())
-            .await
-            .expect("Fail to send");
-        stream.flush().await.expect("");
+        senders::send_invalid_utf8_error(&mut stream).await;
+        return;
     }
 }
-
 /// # The serve function
 /// **Use this function to start the server at a specific port and also provide it with a handler function.**
 /// ## Usage:
@@ -275,22 +193,13 @@ where
 ///     }
 /// }
 /// ```
-pub fn send_http_response(header: &str, body: &str, keep_alive: bool) -> String {
-    if keep_alive {
-        format!(
-            "{}\r\nContent-Length:{}\nConnection:Keep-Alive\r\n\r\n{}",
-            header,
-            body.len(),
-            body
-        )
-    } else {
-        format!(
-            "{}\r\nContent-Length:{}\nConnection:Close\r\n\r\n{}",
-            header,
-            body.len(),
-            body
-        )
-    }
+pub fn send_http_response(header: &str, body: &str) -> String {
+    format!(
+        "{}\r\nContent-Length:{}\r\n\r\n{}",
+        header,
+        body.len(),
+        body
+    )
 }
 
 /// # Send file function:
@@ -312,10 +221,10 @@ pub fn send_http_response(header: &str, body: &str, keep_alive: bool) -> String 
 ///     }
 /// }
 /// ```
-pub fn send_file(header: &str, file_path: &str, keep_alive: bool) -> String {
+pub fn send_file(header: &str, file_path: &str) -> String {
     let contents = fs::read_to_string(file_path)
         .expect("Please place the html files at the correct place, also check the directory from where you are running this server");
-    send_http_response(header, &contents, keep_alive)
+    send_http_response(header, &contents)
 }
 
 /// # Url Decode function:
