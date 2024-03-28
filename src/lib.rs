@@ -3,10 +3,10 @@
 mod priv_parse;
 mod readers;
 
-use std::fs;
-use std::net::SocketAddr;
 use priv_parse::parse_headers;
 use readers::read_the_request;
+use std::fs;
+use std::net::SocketAddr;
 use tokio::net::{TcpListener, TcpStream};
 pub use tokio::runtime::Builder;
 
@@ -89,21 +89,21 @@ pub struct Request {
     /// **This tells which protocol was used to make the request.**
     /// For example: http/1.1
     pub protocol: &'static str,
-    request_was_correct:bool,
+    request_was_correct: bool,
 }
 
 mod senders;
 
 async fn handle_connection<F>(mut stream: TcpStream, func: F)
 where
-    F: Fn(Request) -> String + Send +Copy,
+    F: Fn(Request) -> String + Send + Copy,
 {
     let (buffer, n) = read_the_request(&mut stream).await;
-    if n == 0{
+    if n == 0 {
         return;
     }
 
-    let request:Request = parse_headers(buffer, n);
+    let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
             // answer the first request
@@ -124,17 +124,26 @@ where
                     return; // breaking and returning (closing the connection)
                 }
 
-                let request_inside_loop:Request = parse_headers(buffer, n);
+                let request_inside_loop: Request = parse_headers(buffer, n);
 
-                if request_inside_loop.request_was_correct{
-                    if request_inside_loop.keep_alive{
-                        senders::send_static_folder_and_programmers_response(request_inside_loop, &mut stream, func).await;
+                if request_inside_loop.request_was_correct {
+                    if request_inside_loop.keep_alive {
+                        senders::send_static_folder_and_programmers_response(
+                            request_inside_loop,
+                            &mut stream,
+                            func,
+                        )
+                        .await;
                     } else {
-                        senders::send_static_folder_and_programmers_response(request_inside_loop, &mut stream, func).await;
+                        senders::send_static_folder_and_programmers_response(
+                            request_inside_loop,
+                            &mut stream,
+                            func,
+                        )
+                        .await;
                         return;
                     }
-                }
-                else{
+                } else {
                     senders::send_invalid_utf8_error(&mut stream).await;
                 }
             }
