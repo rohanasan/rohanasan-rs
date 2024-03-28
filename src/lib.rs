@@ -99,6 +99,9 @@ where
     F: Fn(Request) -> String + Send +Copy,
 {
     let (buffer, n) = read_the_request(&mut stream).await;
+    if n == 0{
+        return;
+    }
 
     let request:Request = parse_headers(buffer, n);
     if request.request_was_correct {
