@@ -148,22 +148,15 @@ where
                         }
 
                         let request_inside_loop: Request = parse_headers(buffer, n);
-
+                        let keep_alive = request_inside_loop.keep_alive;
                         if request_inside_loop.request_was_correct {
-                            if request_inside_loop.keep_alive {
-                                senders::send_static_folder_and_programmers_response(
-                                    request_inside_loop,
-                                    &mut stream,
-                                    func,
-                                )
-                                .await;
-                            } else {
-                                senders::send_static_folder_and_programmers_response(
-                                    request_inside_loop,
-                                    &mut stream,
-                                    func,
-                                )
-                                .await;
+                            senders::send_static_folder_and_programmers_response(
+                                request_inside_loop,
+                                &mut stream,
+                                func,
+                            )
+                            .await;
+                            if !keep_alive {
                                 return;
                             }
                         } else {
