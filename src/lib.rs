@@ -137,29 +137,28 @@ where
                 counter += 1;
                 let request_result =
                     timeout(Duration::from_secs(10), read_the_request(&mut stream)).await;
-                match request_result {
-                    Ok((buffer, n)) => {
-                        if n == 0 {
-                            return; // breaking and returning (closing the connection)
-                        }
-
-                        let request_inside_loop: Request = parse_headers(buffer, n);
-                        let keep_alive = request_inside_loop.keep_alive;
-                        if request_inside_loop.request_was_correct {
-                            send_static_folder_and_programmers_response(
-                                request_inside_loop,
-                                &mut stream,
-                                func,
-                            )
-                            .await;
-                            if !keep_alive {
-                                return;
-                            }
-                        } else {
-                            send_invalid_utf8_error(&mut stream).await;
-                        }
+                if let Ok((buffer, n)) = request_result {
+                    if n == 0 {
+                        return; // breaking and returning (closing the connection)
                     }
-                    Err(_) => {}
+
+                    let request_inside_loop: Request = parse_headers(buffer, n);
+                    let keep_alive = request_inside_loop.keep_alive;
+                    if request_inside_loop.request_was_correct {
+                        send_static_folder_and_programmers_response(
+                            request_inside_loop,
+                            &mut stream,
+                            func,
+                        )
+                        .await;
+                        if !keep_alive {
+                            return;
+                        }
+                    } else {
+                        send_invalid_utf8_error(&mut stream).await;
+                    }
+                } else {
+                    // lets not do anything here. I suppose maybe a continue statement? This will work as a continue anyways.
                 }
             }
         } else {
