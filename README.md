@@ -33,7 +33,7 @@ use rohanasan::{
 };
 
 fn handle(req: Request) -> String {
-    send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
+    send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
 }
 
 fn main() {
@@ -131,7 +131,7 @@ use rohanasan::{
     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,
 };
 fn handle(req: Request) -> String {
-    send_file(DEFAULT_HTML_HEADER, "./html/index.html", req.keep_alive)
+    send_file(DEFAULT_HTML_HEADER, "./html/index.html", req)
 }
 
 fn main() {
