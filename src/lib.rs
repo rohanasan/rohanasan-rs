@@ -24,11 +24,12 @@
 
 mod priv_parse;
 mod readers;
-
-use std::{net::SocketAddr, time::Duration};
-
+mod senders;
 use priv_parse::parse_headers;
 use readers::read_the_request;
+use senders::{send_invalid_utf8_error, send_static_folder_and_programmers_response};
+
+use std::{net::SocketAddr, time::Duration};
 pub use tokio::runtime::Builder;
 use tokio::{
     net::{TcpListener, TcpStream},
@@ -43,7 +44,7 @@ use tokio::{
 ///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
 /// };
 /// fn handle(req: Request) -> String {
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
 /// }
 ///
 /// fn main() {
@@ -114,10 +115,9 @@ pub struct Request {
     /// **This tells which protocol was used to make the request.**
     /// For example: http/1.1
     pub protocol: &'static str,
+    /// This has been used multiple times throughout the code to check id therequest was correct or not.
     request_was_correct: bool,
 }
-
-mod senders;
 
 /// private functions to handle connections
 async fn handle_connection<F>(mut stream: TcpStream, func: F)
@@ -131,9 +131,9 @@ where
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
-            senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
+            send_static_folder_and_programmers_response(request, &mut stream, func).await;
             let mut counter = 0;
-            while counter < 100 {
+            while counter < 20 {
                 counter += 1;
                 let request_result =
                     timeout(Duration::from_secs(10), read_the_request(&mut stream)).await;
@@ -146,7 +146,7 @@ where
                         let request_inside_loop: Request = parse_headers(buffer, n);
                         let keep_alive = request_inside_loop.keep_alive;
                         if request_inside_loop.request_was_correct {
-                            senders::send_static_folder_and_programmers_response(
+                            send_static_folder_and_programmers_response(
                                 request_inside_loop,
                                 &mut stream,
                                 func,
@@ -156,17 +156,17 @@ where
                                 return;
                             }
                         } else {
-                            senders::send_invalid_utf8_error(&mut stream).await;
+                            send_invalid_utf8_error(&mut stream).await;
                         }
                     }
                     Err(_) => {}
                 }
             }
         } else {
-            senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
+            send_static_folder_and_programmers_response(request, &mut stream, func).await;
         }
     } else {
-        senders::send_invalid_utf8_error(&mut stream).await;
+        send_invalid_utf8_error(&mut stream).await;
     }
 }
 /// # The serve function
@@ -177,7 +177,7 @@ where
 ///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
 /// };
 /// fn handle(req: Request) -> String {
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
 /// }
 ///
 /// fn main() {
@@ -209,7 +209,7 @@ where
 /// };
 /// fn handle(req: Request) -> String {
 ///
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
 /// }
 ///
 /// fn main() {
@@ -218,23 +218,22 @@ where
 ///     }
 /// }
 /// ```
-pub fn send_http_response(header: &str, body: &str, keep_alive:bool) -> String {
-    if keep_alive{
-    format!(
-        "{}\r\nContent-Length:{}\r\nConnection:Keep-Alive\r\n\r\n{}",
-        header,
-        body.len(),
-        body
-    )
-}
-else{
-    format!(
-        "{}\r\nContent-Length:{}\r\nConnection:Close\r\n\r\n{}",
-        header,
-        body.len(),
-        body
-    )
-}
+pub fn send_http_response(header: &str, body: &str, req: Request) -> String {
+    if req.keep_alive {
+        format!(
+            "{}\r\nContent-Length:{}\r\nConnection:Keep-Alive\r\n\r\n{}",
+            header,
+            body.len(),
+            body
+        )
+    } else {
+        format!(
+            "{}\r\nContent-Length:{}\r\nConnection:Close\r\n\r\n{}",
+            header,
+            body.len(),
+            body
+        )
+    }
 }
 
 /// # Send file function:
@@ -247,7 +246,7 @@ else{
 /// };
 /// fn handle(req: Request) -> String {
 ///
-///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
+///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
 /// }
 ///
 /// fn main() {
@@ -256,9 +255,9 @@ else{
 ///     }
 /// }
 /// ```
-pub fn send_file(header: &str, file_path: &str, keep_alive:bool) -> String {
+pub fn send_file(header: &str, file_path: &str, req: Request) -> String {
     let contents = std::fs::read_to_string(file_path).expect("msg");
-    send_http_response(header, &contents, keep_alive)
+    send_http_response(header, &contents, req)
 }
 
 /// # Url Decode function:
@@ -272,7 +271,7 @@ pub fn send_file(header: &str, file_path: &str, keep_alive:bool) -> String {
 /// };
 /// fn handle(req: Request) -> String {
 ///     if req.path == "/request"{
-///         println!("{}" ,url_decode(req.get_request()));
+///         println!("{}" , url_decode(req.get_request()));
 ///     }
 /// }
 ///
