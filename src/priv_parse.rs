@@ -20,10 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use tokio::fs;
-
 use tokio::{
-    fs::File,
+    fs::{File, metadata},
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
 };
@@ -130,7 +128,7 @@ pub fn parse_headers(buffer: [u8; 1024], n: usize) -> Request {
 
 /// check if path exists
 async fn path_exists(path: String) -> bool {
-    fs::metadata(path).await.is_ok()
+    metadata(path).await.is_ok()
 }
 
 /// handle static folder
