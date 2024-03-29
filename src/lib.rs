@@ -43,7 +43,7 @@ use tokio::{
 ///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
 /// };
 /// fn handle(req: Request) -> String {
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
 /// }
 ///
 /// fn main() {
@@ -133,10 +133,10 @@ where
         if request.keep_alive {
             senders::send_static_folder_and_programmers_response(request, &mut stream, func).await;
             let mut counter = 0;
-            while counter < 10 {
+            while counter < 100 {
                 counter += 1;
                 let request_result =
-                    timeout(Duration::from_secs(5), read_the_request(&mut stream)).await;
+                    timeout(Duration::from_secs(10), read_the_request(&mut stream)).await;
                 match request_result {
                     Ok((buffer, n)) => {
                         if n == 0 {
@@ -159,9 +159,7 @@ where
                             senders::send_invalid_utf8_error(&mut stream).await;
                         }
                     }
-                    Err(_) => {
-                        return;
-                    }
+                    Err(_) => {}
                 }
             }
         } else {
@@ -179,7 +177,7 @@ where
 ///     rohanasan, send_http_response, serve, Request, DEFAULT_HTML_HEADER,
 /// };
 /// fn handle(req: Request) -> String {
-///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+///     send_http_response(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
 /// }
 ///
 /// fn main() {
@@ -203,7 +201,7 @@ where
 
 /// # Send HTTP response function:
 /// **Use this function to send a http response**
-/// **Provide it with a header, a response string and req.data.**
+/// **Provide it with a header, a response string and req.keep_alive.**
 /// ## Example usage:
 /// ```no_run
 /// use rohanasan::{
@@ -220,18 +218,28 @@ where
 ///     }
 /// }
 /// ```
-pub fn send_http_response(header: &str, body: &str) -> String {
+pub fn send_http_response(header: &str, body: &str, keep_alive:bool) -> String {
+    if keep_alive{
     format!(
-        "{}\r\nContent-Length:{}\r\n\r\n{}",
+        "{}\r\nContent-Length:{}\r\nConnection:Keep-Alive\r\n\r\n{}",
         header,
         body.len(),
         body
     )
 }
+else{
+    format!(
+        "{}\r\nContent-Length:{}\r\nConnection:Close\r\n\r\n{}",
+        header,
+        body.len(),
+        body
+    )
+}
+}
 
 /// # Send file function:
 /// **Use this function to send a file as a response.**
-/// **Provide it with a header, the file's path and req.data.**
+/// **Provide it with a header, the file's path and req.keep_alive.**
 /// ## Example usage:
 /// ```no_run
 /// use rohanasan::{
@@ -239,7 +247,7 @@ pub fn send_http_response(header: &str, body: &str) -> String {
 /// };
 /// fn handle(req: Request) -> String {
 ///
-///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.data)
+///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req.keep_alive)
 /// }
 ///
 /// fn main() {
@@ -248,9 +256,9 @@ pub fn send_http_response(header: &str, body: &str) -> String {
 ///     }
 /// }
 /// ```
-pub fn send_file(header: &str, file_path: &str) -> String {
+pub fn send_file(header: &str, file_path: &str, keep_alive:bool) -> String {
     let contents = std::fs::read_to_string(file_path).expect("msg");
-    send_http_response(header, &contents)
+    send_http_response(header, &contents, keep_alive)
 }
 
 /// # Url Decode function:

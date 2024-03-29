@@ -44,7 +44,7 @@ pub fn parse_headers(buffer: [u8; 1024], n: usize) -> Request {
         if request[i] == b'\n' {
             //  The request maker has done some serious mistake in doing so. But, don't worry, I forgive them.
             headers.push(&request[current_header_start..=i]);
-            current_header_start = i + 2;
+            current_header_start = i + 1;
         }
         if request[i] == b'\r'
             && i + 3 < request.len()
