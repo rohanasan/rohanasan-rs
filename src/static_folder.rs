@@ -21,15 +21,12 @@ pub async fn handle_static_folder(request: &Request, strm: &mut TcpStream) {
             .expect("Error opening file (This is not an actual possible error)");
         let _ = file.read_to_end(&mut content).await;
         let content_type = determine_content_type(&file_path);
-        let mut response_headers = String::new();
-        if request.keep_alive {
-            response_headers = format!(
-                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection:Keep-Alive\r\nContent-Type: {}\r\n\r\n",
-                content.len(),
-                content_type
-            );
-        }
-        else{
+        let mut response_headers = format!(
+            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection:Keep-Alive\r\nContent-Type: {}\r\n\r\n",
+            content.len(),
+            content_type
+        );
+        if !request.keep_alive {
             response_headers = format!(
                 "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection:Close\r\nContent-Type: {}\r\n\r\n",
                 content.len(),
@@ -41,11 +38,9 @@ pub async fn handle_static_folder(request: &Request, strm: &mut TcpStream) {
         strm.write_all(&response).await.expect("Fail to send");
         strm.flush().await.expect("");
     } else {
-        let mut answer = "";
-        if request.keep_alive{
+        let mut answer = "HTTP/1.1 404 Not Found\r\nConnection:Close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>404</h1>";
+        if !request.keep_alive{
             answer = "HTTP/1.1 404 Not Found\r\nConnection:Keep-Alive\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>404</h1>";
-        }else{
-            answer = "HTTP/1.1 404 Not Found\r\nConnection:Close\r\nContent-length: 46\r\nContent-type: text/html\r\n\r\n<h1>404</h1>";
         }
         strm.write_all(answer.as_bytes())
             .await
