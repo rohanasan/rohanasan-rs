@@ -1,11 +1,8 @@
 # Use Alpine Linux as the base image
-FROM alpine:latest
+FROM rust:latest
 
 # Install system dependencies
-RUN apk add --no-cache \
-    build-base \
-    openssl-dev \
-    cargo
+RUN apt-get update -y
 
 # Set the working directory
 WORKDIR /app

@@ -22,13 +22,15 @@
 
 #![doc = include_str!("../README.md")]
 
+mod constants;
 mod priv_parse;
 mod readers;
 mod senders;
+mod static_folder;
+pub use constants::*;
 use priv_parse::parse_headers;
 use readers::read_the_request;
 use senders::{send_invalid_utf8_error, send_static_folder_and_programmers_response};
-
 use std::{net::SocketAddr, time::Duration};
 pub use tokio::runtime::Builder;
 use tokio::{
@@ -67,36 +69,6 @@ macro_rules! rohanasan {
         )
     };
 }
-
-/// This is the Default Html Header.
-pub const DEFAULT_HTML_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/html";
-
-/// This is the Default Json Header.
-pub const DEFAULT_JSON_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: application/json";
-
-/// This is the Default 403 error header
-pub const ERROR_403_HEADER: &str = "HTTP/1.1 403 Forbidden\nContent-Type: text/html";
-
-/// This is the Default Plain Texts' Header
-pub const DEFAULT_PLAIN_TEXT_HEADER: &str = "HTTP/1.1 200 OK\nContent-Type: text/plain";
-
-/// This is the Default 500 errors' header
-pub const DEFAULT_500_HEADER: &str = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html";
-
-/// This is the Default 404 errors' Header.
-pub const ERROR_404_HEADER: &str = "HTTP/1.1 404 Not Found\nContent-Type: text/html";
-
-/// This is the default 301 permanently moved error's header.
-pub const DEFAULT_301_HEADER: &str = "HTTP/1.1 301 Moved Permanently\nContent-Type: text/html";
-
-/// This is the default 400 errors' header.
-pub const DEFAULT_400_HEADER: &str = "HTTP/1.1 400 Bad Request\nContent-Type: text/html";
-
-/// This is the default 401 unauthorized errors' header.
-pub const DEFAULT_401_HEADER: &str = "HTTP/1.1 401 Unauthorized\nContent-Type: text/html";
-
-/// This is the default 402 payment required errors' header.
-pub const DEFAULT_402_HEADER: &str = "HTTP/1.1 402 Payment Required\nContent-Type: text/html";
 
 /// # Request Struct
 /// **This is the structure that you have to import in your handle function.**
@@ -268,6 +240,7 @@ pub fn send_file(header: &str, file_path: &str, req: Request) -> String {
 /// use rohanasan::{
 ///     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,url_decode
 /// };
+///
 /// fn handle(req: Request) -> String {
 ///     if req.path == "/request"{
 ///         println!("{}" , url_decode(req.get_request()));

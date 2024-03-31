@@ -20,7 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::{priv_parse::handle_static_folder, Request};
+use crate::Request;
+use crate::static_folder::handle_static_folder;
+
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 /// used a lot of times forsending static folders and programmers response.
@@ -39,17 +41,17 @@ pub async fn send_static_folder_and_programmers_response<F>(
         stream
             .write_all(answer.as_bytes())
             .await
-            .expect("Fail to send");
+            .expect("Failed to send response");
         stream.flush().await.expect("");
     }
 }
 
 /// This function has been used a lot of timesto send an invalid utf 8 error.
 pub async fn send_invalid_utf8_error(stream: &mut TcpStream) {
-    let answer = "HTTP/1.1 200 OK\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>";
     stream
-        .write_all(answer.as_bytes())
+        .write_all("HTTP/1.1 400 Bad Request\r\nContent-length: 88\r\nContent-type: text/html\r\n\r\n<h1>An invalid http request was received during keep alive, Error: Kepp-alive error</h1>".as_bytes())
         .await
-        .expect("Fail to send");
-    stream.flush().await.expect("");
+        .expect("Failed to send");
+    stream.flush().await.expect("Unable to send");
 }
+
