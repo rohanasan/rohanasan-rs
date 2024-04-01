@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// Crate for helping with sending requests.
+/// NOTE: These functions are to be primiarly used within Rohanasan's library
+/// Not expected to be used by the user of the library.
 use crate::Request;
 use crate::static_folder::handle_static_folder;
-
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
 /// used a lot of times forsending static folders and programmers response.

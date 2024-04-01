@@ -4,3 +4,4 @@ if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localS
     document.documentElement.classList.remove('dark')
 }
 
+hljs.highlightAll();

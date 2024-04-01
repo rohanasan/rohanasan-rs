@@ -7,3 +7,4 @@ mod url_test {
         assert_eq!(String::from("hello world"), url_decode("hello%20world"));
     }
 }
+
