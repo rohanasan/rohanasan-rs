@@ -1,3 +1,4 @@
+/// This is a standard example which shows how you can use Rohanasan for logic building.
 use rohanasan::{
     rohanasan, send_file, send_http_response, serve, url_decode, Request, DEFAULT_HTML_HEADER,
 };
