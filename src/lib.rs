@@ -92,7 +92,7 @@ pub struct Request {
 }
 
 /// private functions to handle connections
-async fn handle_connection<F>(mut stream: TcpStream, func: F)
+async fn handle_connection<F>(mut stream: TcpStream, staticFolder: &str, func: F)
 where
     F: Fn(Request) -> String + Send + Copy,
 {
@@ -103,7 +103,8 @@ where
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
-            send_static_folder_and_programmers_response(request, &mut stream, func).await;
+            send_static_folder_and_programmers_response(request, &mut stream, staticFolder, func)
+                .await;
             let mut counter = 0;
             while counter < 20 {
                 counter += 1;
@@ -120,6 +121,7 @@ where
                         send_static_folder_and_programmers_response(
                             request_inside_loop,
                             &mut stream,
+                            staticFolder,
                             func,
                         )
                         .await;
@@ -134,7 +136,8 @@ where
                 }
             }
         } else {
-            send_static_folder_and_programmers_response(request, &mut stream, func).await;
+            send_static_folder_and_programmers_response(request, &mut stream, staticFolder, func)
+                .await;
         }
     } else {
         send_invalid_utf8_error(&mut stream).await;
@@ -157,19 +160,22 @@ where
 ///     }
 /// }
 /// ```
-pub async fn serve<F>(port: u16, func: F)
+pub async fn serve<F>(port: u16, func: F, staticFolder: Option<&'static str>)
 where
     F: Fn(Request) -> String + Send + 'static + Copy,
 {
+    let staticFolder = match staticFolder {
+        None => "/static/",
+        Some(staticFolder) => staticFolder,
+    };
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await.expect("");
 
     loop {
         let (stream, _) = listener.accept().await.expect("");
-        tokio::spawn(handle_connection(stream, func));
+        tokio::spawn(handle_connection(stream, staticFolder, func));
     }
 }
-
 /// # Send HTTP response function:
 /// **Use this function to send a http response**
 /// **Provide it with a header, a response string and req.keep_alive.**

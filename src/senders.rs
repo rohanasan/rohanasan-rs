@@ -23,7 +23,7 @@
 /// Crate for helping with sending requests.
 /// NOTE: These functions are to be primiarly used within Rohanasan's library
 /// Not expected to be used by the user of the library.
-use crate::Request;
+use crate::{static_folder, Request};
 use crate::static_folder::handle_static_folder;
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 
@@ -31,11 +31,12 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 pub async fn send_static_folder_and_programmers_response<F>(
     request: Request,
     stream: &mut TcpStream,
+    folder_and_path: &str,
     func: F,
 ) where
     F: Fn(Request) -> String,
 {
-    if request.path.starts_with("/static/") && request.path.len() > 8 {
+    if request.path.starts_with(folder_and_path) && request.path.len() > 8 {
         handle_static_folder(&request, stream).await;
     } else {
         let answer = func(request);

@@ -20,6 +20,6 @@ fn handle(req: Request) -> String {
 
 fn main() {
     rohanasan! {
-        serve(8080, handle)
+        serve(8080, handle, None)
     }
 }
