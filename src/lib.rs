@@ -92,7 +92,7 @@ pub struct Request {
 }
 
 /// private functions to handle connections
-async fn handle_connection<F>(mut stream: TcpStream, staticFolder: &str, func: F)
+async fn handle_connection<F>(mut stream: TcpStream, func: F)
 where
     F: Fn(Request) -> String + Send + Copy,
 {
@@ -103,7 +103,7 @@ where
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
-            send_static_folder_and_programmers_response(request, &mut stream, staticFolder, func)
+            send_static_folder_and_programmers_response(request, &mut stream, func)
                 .await;
             let mut counter = 0;
             while counter < 20 {
@@ -121,7 +121,6 @@ where
                         send_static_folder_and_programmers_response(
                             request_inside_loop,
                             &mut stream,
-                            staticFolder,
                             func,
                         )
                         .await;
@@ -136,7 +135,7 @@ where
                 }
             }
         } else {
-            send_static_folder_and_programmers_response(request, &mut stream, staticFolder, func)
+            send_static_folder_and_programmers_response(request, &mut stream, func)
                 .await;
         }
     } else {
@@ -160,20 +159,16 @@ where
 ///     }
 /// }
 /// ```
-pub async fn serve<F>(port: u16, func: F, staticFolder: Option<&'static str>)
+pub async fn serve<F>(port: u16, func: F)
 where
     F: Fn(Request) -> String + Send + 'static + Copy,
 {
-    let staticFolder = match staticFolder {
-        None => "/static/",
-        Some(staticFolder) => staticFolder,
-    };
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await.expect("");
 
     loop {
         let (stream, _) = listener.accept().await.expect("");
-        tokio::spawn(handle_connection(stream, staticFolder, func));
+        tokio::spawn(handle_connection(stream, func));
     }
 }
 /// # Send HTTP response function:

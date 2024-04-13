@@ -21,6 +21,7 @@ fn handle(req: Request) -> String {
 
 fn main() {
     rohanasan! {
-        serve(8080, handle, None)
+        serve(8080, handle)
     }
 }
+

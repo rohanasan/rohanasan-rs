@@ -143,3 +143,4 @@ fn main() {
 ## Points to remember:
 - There is no need to import tokio for using rohanasan macro.
 - By default, rohanasan serves any folder named static present in the same directory where you are running the server.
+
