@@ -103,8 +103,7 @@ where
     let request: Request = parse_headers(buffer, n);
     if request.request_was_correct {
         if request.keep_alive {
-            send_static_folder_and_programmers_response(request, &mut stream, func)
-                .await;
+            send_static_folder_and_programmers_response(request, &mut stream, func).await;
             let mut counter = 0;
             while counter < 20 {
                 counter += 1;
@@ -135,8 +134,7 @@ where
                 }
             }
         } else {
-            send_static_folder_and_programmers_response(request, &mut stream, func)
-                .await;
+            send_static_folder_and_programmers_response(request, &mut stream, func).await;
         }
     } else {
         send_invalid_utf8_error(&mut stream).await;
@@ -173,7 +171,7 @@ where
 }
 /// # Send HTTP response function:
 /// **Use this function to send a http response**
-/// **Provide it with a header, a response string and req.keep_alive.**
+/// **Provide it with a header, a response string and req.**
 /// ## Example usage:
 /// ```no_run
 /// use rohanasan::{
@@ -210,7 +208,7 @@ pub fn send_http_response(header: &str, body: &str, req: Request) -> String {
 
 /// # Send file function:
 /// **Use this function to send a file as a response.**
-/// **Provide it with a header, the file's path and req.keep_alive.**
+/// **Provide it with a header, the file's path and req.**
 /// ## Example usage:
 /// ```no_run
 /// use rohanasan::{
@@ -218,7 +216,7 @@ pub fn send_http_response(header: &str, body: &str, req: Request) -> String {
 /// };
 /// fn handle(req: Request) -> String {
 ///
-///     send_file(DEFAULT_HTML_HEADER, "<h1>Hello!</h1>", req)
+///     send_file(DEFAULT_HTML_HEADER, "./html/index.html", req)
 /// }
 ///
 /// fn main() {
@@ -229,6 +227,38 @@ pub fn send_http_response(header: &str, body: &str, req: Request) -> String {
 /// ```
 pub fn send_file(header: &str, file_path: &str, req: Request) -> String {
     let contents = std::fs::read_to_string(file_path).expect("msg");
+    send_http_response(header, &contents, req)
+}
+
+/// # Send file top bottom function:
+/// **Use this function to send a file as a response along with data to insert at the file's top and bottom.**
+/// **Provide it with a header, the file's path, top content, bottom content and req.**
+/// ## Example usage:
+/// ```no_run
+/// use rohanasan::{
+///     rohanasan, send_file, serve, Request, DEFAULT_HTML_HEADER,
+/// };
+/// fn handle(req: Request) -> String {
+///
+///     send_file_top_bottom(DEFAULT_HTML_HEADER, "./html/index.html", "<body>", "</body>" req)
+/// }
+///
+/// fn main() {
+///     rohanasan! {
+///         serve(8080, handle)
+///     }
+/// }
+/// ```
+pub fn send_file_top_bottom(
+    header: &str,
+    file_path: &str,
+    top: &str,
+    bottom: &str,
+    req: Request,
+) -> String {
+    let mut contents: String = std::fs::read_to_string(file_path).expect("msg");
+    contents = contents.replace("{%INJECT_DATA TOP%}", top);
+    contents = contents.replace("{%INJECT_DATA BOTTOM%}", bottom);
     send_http_response(header, &contents, req)
 }
 
